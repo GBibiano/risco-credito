@@ -57,80 +57,291 @@ Entregar um site do gênero bancário, fictício, que permite o acesso e cadastr
 
 ## Análise Exploratória de Dados
 
-- descrição do dataset (markdown)
-  - o que é cada variável e respectiva unidade de valor
-- Importação das libs
-- Definir as funções que serão utilizadas no projeto 
-  - preprocessing
-  - matriz de confusao
-  - divisao de (X,y) em treino/teste e resultado dos scores
-- `.shape`, `.info()`, `.describe()`, `.head()`:
-  - Verificar o que significa cada coluna
-  - Verificar padrões nos dados
-  - Tratamento de dados nulos, duplicados, outliers
-  - remover colunas que não agregam informação à EDA
-- Análise univariada e bivariada de:
-  - Variáveis numéricas; e
-  - Variáveis categóricas:
-    - Análise de KDEplots
-    - Análise dos gráficos de contagem
-    - Análise de boxplots
-    - Análise dos gráficos de violino
-    - Análise de histogramas
-    - Análise dos gráficos de pontos
-- Resultados principais da EDA
-  - Teste de Hipótese
-  - Variáveis com a possibilidade de ser maior indicador da classificação de um risco de crédito
+##### Descrição do problema
+  Quando se trata de trabalhar com dados em um banco é esperado que a concessão de empréstimos seja rigorosamente avaliada com base em argumentos. Um dos problemas dessa empresa em específico era de prever quando uma concessão de empréstimo à um cliente resulta em inadimplência. A inadimplência ocorre quando uma pessoa física ou jurídica deixa de cumprir uma obrigação financeira dentro do prazo estipulado. Com a intenção de sanar este problema, pedimos uma base de dados dos clientes para elaborar uma solução utilizando algoritmos de aprendizagem de máquina.
 
-## Perguntas Relevantes de Negócio
+##### Importação de libs
 
-- responder à cinco perguntas de negócios relevantes
+Na EDA utilizei apenas:
+- pandas;
+- numpy;
+- matplotlib;
+- seaborn;
+- **pickle**: este para serialização dos dados
+
+##### Informações do dataset
+
+- **`idade_cliente`**: Idade do cliente
+- **`renda_cliente`**: Renda anual do cliente
+- **`posse_residencia_cliente`**: tipo de posse da residência (casa alugada, quitada ou em hipoteca)
+- **`tempo_emprego_cliente`**: anos trabalhados dos clientes
+- **`finalidade_emprestimo`**: finalidade do empréstimo
+- **`nota_emprestimo`**: grau do empréstimo
+- **`valor_emprestimo`**: Valor solicitado pelo cliente
+- **`taxa_juros_emprestimo`**: taxa de juros do empréstimo
+- **`status_emprestimo`**: variável target dos modelos. 0 = pagou empréstimo 1 = não pagou;
+- **`percentual_renda_emprestimo`**: percentagem do empréstimo dividido pela renda anual do cliente
+- **`historico_inadimplencia_cliente`**: se possui histórico de inadimplência
+- **`tempo_credito_cliente`**: histórico de crédito em anos
+
+Reduzimos o tamanho do dataset de 3.0 MB para 1.6 MB alterando o tipo das features
+
+##### Tratamento de dados nulos, duplicados, outliers
+
+O dataset possuía:
+
+- 895 clientes sem informação de anos trabalhados (`tempo_emprego_cliente`); e
+- 3.116 clientes sem informação de taxa de juros (`taxa_juros_emprestimo`).
+
+Decidi por retirar as 3.116 instâncias de taxa de juros para evitar incluir viés fictício nos dados que poderia gerar underfitting mais à frente e preenchi os nulos de anos trabalhados com o valor mais frequente (moda).
+
+##### Verificando padrões nos dados
+
+Executei a Análise univariada e bivariada em:
+  - Variáveis Numéricas:
+    - Gráficos de Pontos
+    - Gráficos de Barras
+  - Variáveis Categóricas:
+    - KDE Plots
+    - Gráficos de Contagem
+    - Box Plots
+    - Gráficos de Violino
+    - Histogramas
+      
+###### Resultados Principais da EDA
+  
+  - Todas as features envolvidas possuem uma **assimetria positiva, uma cauda à direita**.
+  - **`idade_cliente`**: A população do dataset é composta majoritariamente por jovens e adultos entre 21 e 35 anos.
+      - O maior grupo de clientes possui 23 anos com 3889 instâncias.
+  - **`renda_cliente`**: A quantidade de clientes que recebem MENOS que 135 mil por ano é o grupo predominante com 27.848 instâncias.
+      - Enquanto os que recebem entre 135 a 500 mil são aproximadamente 1530 clientes.
+  - **`tempo_emprego_cliente`**: A maior concentração de tempo empregatício que se encontra em `tempo_emprego_cliente` está entre 0 e 10 anos. O valor máximo está em 40 anos trabalhados.
+  - **`valor_emprestimo`**: Os valores de empréstimos se concentram aproximadamente entre 2 mil e 15 mil. O maior valor de empréstimo fornecido é de 35.000 para poucos clientes e não há outliers.
+  - **`taxa_juros_emprestimo`**: A concentração de dados está em 7,5% e entre 10% a 15% de juros anual.
+      - A taxa de juros do empréstimo mostra que há pelo menos um cliente com 23% de juros ao ano, que é a maior taxa.
+      - A escala relativa de tempo não é conhecida, mas presumimos que está em anos.
+  - **`percentual_renda_emprestimo`**: A concentração dos dados se encontra entre 1% e 30%; e
+      - É possível visualizar que não há mais uma quantia considerável de clientes dentro da faixa de 0%. 
+  - **`tempo_credito_cliente`**: Metade do dataset está entre 0 e 5 anos e 1/3 do dataset está entre 5 e 10 anos de tempo de crédito do cliente.
+      - O valor máximo está em aproximadamente 30 anos. Assumimos que não há outliers neste contexto.
+      - Não sabemos a escala relativa de tempo, mas supomos que está em anos.
+  - **`posse_residencia_cliente`**: A maioria dos clientes alugam moradias e possuem hipoteca.
+  - **`finalidade_emprestimo`**:  finalidade dos empréstimos possui uma leve assimetria positiva, sendo os três maiores motivos de solicitar empréstimo: Educação, Médico e Empreendimento.
+  - **`nota_emprestimo`**: As notas de empréstimos mais presentes no dataframe são do tipo "A", "B" e "C".
+  - **`historico_inadimplencia_cliente`**: Existe um desbalanceamento nestes dados exibindo **5.199** clientes (21.47%) com histórico de crédito ruim sendo minoria com uma proporção de **a cada 5 clientes um possui histórico de inadimplência.**
+  - **`status_emprestimo`**: A variável alvo confirmou o desbalanceamento dos dados exibindo **6.459** clientes (21.96%) que estão classificados como inadimplentes com uma proporção de **a cada 4 clientes um é inadimplente.**
+
+Após comparar todas as variáveis com o target e verificar a proporção de inadimplentes em cada uma, pudemos visualizar que:
+
+  - **`idade_cliente`**: idade do cliente.
+      - Há uma participação relativamente constante dos inadimplentes em todos os intervalos.
+      - A maior concentração de inadimplentes está no intervalo entre 20 e 40 anos de idade com 6.128 instâncias.
+      - O intervalo com a maior representação de inadimplentes está entre 60 e 70 anos de idade com 36% do total de clientes deste intervalo.
+      - Há um cliente com 94 anos de idade classificado como **adimplente**.
+  - **`renda_cliente`**: renda anual do cliente.
+      - A maior concentração de inadimplentes está entre 20 e 80 mil de renda com 5.043 instâncias.
+      - Os inadimplentes possuem uma representação majoritária acima de 80% para os intervalos até 20 mil de renda anual.
+      - Há um cliente que recebe acima de 499.800 de renda classificado como **inadimplente**.
+  - **`tempo_emprego_cliente`**: registro em anos de serviço do cliente.
+      - A maior concentração de inadimplentes está evidenciado até 15 anos de serviço com 6.327 instâncias.
+      - Os intervalos de **0 a 5**, **20 a 25** e **30 a 35 anos**, os inadimplentes representam acima de 25% do total de clientes destes intervalos.
+      - Há um cliente com mais de 35 anos de serviço classificado como **adimplente**.
+  - **`valor_emprestimo`**: valor recebido pelo interessado.
+      - A maior concentração de inadimplentes se encontra entre mil e 20 mil do valor do empréstimo com 5.496 instâncias.
+      - Os inadimplentes possuem uma representação de aproximadamente 34% nos intervalos acima de 20 mil do valor do empréstimo.
+  - **`taxa_juros_emprestimo`**: juros anual do empréstimo.
+      - A maior concentração de inadimplentes ocorre até 20% de juros com 6.396 instâncias.
+      - Em 15% de juros e acima a representatividade de inadimplentes é superior à 50% em cada intervalo.
+      - Há um cliente classificado como **inadimplente** com aproximadamente 23.22% de juros anual.
+  - **`percentual_renda_emprestimo`**: Porcentagem -> razão do empréstimo sobre a renda.
+      - A maior concentração de inadimplentes está nos primeiros intervalos entre 10% e 40% do empréstimo sobre a renda com 5.558 instâncias.
+      - Há uma representatividade majoritária de inadimplentes dentro dos intervalos acima de 30%, somam aproximadamente 66% do total de clientes destes intervalos.
+      - Há um cliente classificado como **adimplente** que possui aproximadamente 83% da razão do empréstimo sobre a renda.
+  - **`tempo_credito_cliente`:** história de crédito do cliente em anos.
+      - A maior concentração de inadimplentes aparece nos intervalos entre 2 e 15 anos de tempo de crédito com 6.147 instâncias.
+      - Há uma participação relativamente constante dos inadimplentes em todos os intervalos.
+      - Os inadimplentes possuem uma representação de 27% nos intervalos com tempo de crédito registrado acima de 20 anos.
+  - **`posse_residencia_cliente`**:
+      - Os inadimplentes na maioria das vezes possuem **hipoteca ou moradia alugada**, representando 6.263 instâncias.
+      - Inadimplentes representam 29% ou mais quando possuem **moradia alugada ou outra forma de posse**.
+  - **`finalidade_emprestimo`**:
+      - As finalidades 'Consolidação de Dívidas', 'Médico', 'Pessoal' e 'Educação' possuem a maior concentração de inadimplentes com 4.833 instâncias.
+      - Os inadimplentes possuem uma representação acima de 25% nas finalidades 'Melhoria da Casa', 'Consolidação de Dívidas', 'Médico' com 3.678 instâncias.
+  - **`nota_emprestimo`**:
+      - A maior concentração de inadimplentes se encontra nas notas 'A', 'B', 'C' e 'D' com 5.681 instâncias.
+      - Inadimplentes possuem uma representatividade majoritária nas notas 'D', 'E', 'F' e 'G', com porcentagens acima de 50%, estes clientes representam 2.747 instâncias.
+      - Especial atenção na nota de empréstimo 'G' que possui 58 clientes inadimplentes representando aproximadamente 99% da subcategoria.
+  - **`historico_inadimplencia_cliente`**:
+      - A maior concentração de inadimplentes não possui histórico de inadimplência com 4.480 instâncias (18.5% do total de clientes **sem** histórico de inadimplência).
+      - Os inadimplentes representam 38.1% do total de clientes **com** histórico de inadimplência com 1.979 instâncias.
+
+Ao final exportei o arquivo pickle da base de dados para utilizar na modelagem.
 
 ## Modelo de Machine Learning
 
 ### Modelagem
 
-- remover colunas que não agregam informação à modelagem
-- Correlação de pearson
-- Encoding de variáveis categóricas
-- Preparação de dados: inserir sobre SimpleImputer ou StandardScaler se foi utilizado
-- Testar os modelos de ML
-  - accuracy_score
-  - confusion_matrix 
-  - classification_report
-    - Score Cross Validation
-    - Average Precision
-    - Precision Score
-    - Recall Score
-    - F1 Score
-    - ROC AUC Score 
-    
-### Importância das Features (maior para menor – 10 primeiras)
+Optei por utilizar três modelos:
 
-- Descrever como chegou à conclusão da Feature Engineering
-  - Entropia, ratios, média, mediana, std, duplicates entre variáveis
-  - Divisão entre valores de uma variável por outra
-- Inserir tabela com features com maior importância do modelo de ML
+- Random Forest Classifier;
+- XGBoost Classifier;
+- Gradient Boosting Classifier;
 
-### Validação Cruzada
+Utilizei principalmente duas funções:
 
-- Validação Cruzada: inserir sobre StratifiedKFold da biblioteca sklearn.model_selection se foi utilizado
+- **`treinar_modelo()`:**
+  - Treina o modelo, exibe precisão/recall/f1-score, matriz de confusão e feature_importance;
+  - Utilizando:
+    - Split em treino/teste: StratifiedKFold
+    - Feature Encoding: Target Encoder
+    - Feature Scaling: Standard Scaler
+    - Cross Validate: (Weighted) -> Média da Precisão, Média da Revocação Média do F1 Score
+      - Métrica utilizada: Precisão x Revocação, Área abaixo da Curva
+  - Retorna o modelo treinado, X_test, y_test e y_pred
+- **`rfe_report()`:**
+  - Exibe um relatório até destacar o Recursive Feature Elimination que obteve a melhor métrica.
+  
+##### Correlação de Pearson
+
+Há uma correlação positiva moderada entre as variáveis:
+
+- **`idade_cliente`** e **`tempo_credito_cliente`**; e
+- **`taxa_juros_emprestimo`** e **`historico_inadimplencia_cliente`**
+
+##### Feature Engineering
+
+Executei:
+- Médias e desvios-padrão de features; e
+- Ratios: divisão de uma feature por outra.
+
+Criando 11 features adicionais e totalizando 23, sendo elas:
+
+1. retorno_emprestimo = multiplicando (taxa_juros_emprestimo por valor_emprestimo) + valor_empréstimo;
+2. ratio_renda_emp = dividindo renda por emprestimo;
+3. ratio_emprego_credito = tempo_emprego_cliente dividido por tempo_credito_cliente, caso dividir por zero, resulta em zero;
+4. media_valemp_nota = média de valor_emprestimo para cada nota_emprestimo;
+5. media_valoremp_finalidade = média de valor_emprestimo para cada finalidade_emprestimo;
+6. std_valemp_residencia = desvio-padrão do valor_emprestimo por posse_residencia_cliente;
+7. media_renda_nota = média de renda_cliente para cada nota_emprestimo;
+8. media_renda_finalidade = média de renda_cliente para cada finalidade_emprestimo;
+9. std_renda_residencia = desvio-padrão do renda_cliente por posse_residencia_cliente;
+10. ratio_emprego_renda = tempo_emprego_cliente dividido por renda_cliente
+11. ratio_credito_renda = tempo_credito_cliente dividido por renda_cliente
+
+##### Avaliando a performance de modelos e respectivas features importances
+
+Para evitar overfitting e capturar ruídos dos dados, preferi verificar a importância das features em cada modelo e tratar as piores posteriormente com RFE. Os modelos foram treinados com 10 folds no StratifiedKFold (SKF) em razão do desbalanceamento de classes, situação em que o SKF lida bem na distribuição de folds em treino e teste estratificando-os.
+
+- Random Forest Classifier:
+    - Preferi utilizar a proporção inversa das classes como pesos ao invés de utilizar balanceamento de classes do gênero undersampling ou oversampling (RUS, ADASYN, SMOTE)
+    - Média da Precisão (Weighted): 93.77%
+    - Média da Revocação (Weighted): 93.44%
+    - Média do F1 Score (Weighted): 93.04%
+    - Precisão x Revocação, Área abaixo da Curva: 89.40%
+    - Top 5 Feature Importance:
+      - Inserir tabela com features com maior importância do modelo de ML
+        - ratio_renda_emp;
+        - percentual_renda_emprestimo;
+        - renda_cliente;
+        - taxa_juros_emprestimo;
+        - media_valemp_nota;
+    - Nenhuma feature sem importância para o modelo, sendo a menor **`historico_inadimplencia_cliente`** com 0.006285.
+- XGBoost Classifier:
+    - Média da Precisão (Weighted): 93.80%
+    - Média da Revocação (Weighted): 93.53%
+    - Média do F1 Score (Weighted): 93.16%
+    - Precisão x Revocação, Área abaixo da Curva: 90.81%
+    - Top 5 Feature Importance:
+        - Inserir tabela com features com maior importância do modelo de ML
+        - ratio_renda_emp
+        - nota_emprestimo
+        - posse_residencia_cliente
+        - tempo_emprego_cliente
+        - finalidade_emprestimo
+    - 1 feature sem importância para o modelo, sendo ela **`std_renda_residencia`**.
+- Gradient Boosting Classifier:
+    - Média da Precisão (Weighted): 92.46%
+    - Média da Revocação (Weighted): 92.21%
+    - Média do F1 Score (Weighted): 91.71%
+    - Precisão x Revocação, Área abaixo da Curva: 86.61%
+    - Top 5 Feature Importance:
+        - Inserir tabela com features com maior importância do modelo de ML
+        - ratio_renda_emp
+        - media_valemp_nota
+        - nota_emprestimo
+        - posse_residencia_cliente
+        - renda_cliente
+    - 8 features sem importância para o modelo, sendo 4 delas do DataFrame original.
+
+O modelo que se saiu melhor em termos de minimizar os falsos positivos foi o Random Forest Classifier, contudo, desejamos diminuir o número de clientes inadimplentes que o modelo erra (falsos negativos). Logo o **XGBoost Classifier** obteve resultados melhores com um custo baixo de falsos positivos.
+
+O modelo com a pior performance foi o Gradient Boosting Classifier.
+
+##### Feature Selection
+
+Utilizei o RFE (Recursive Feature Elimination). Testei a quantidade de features cuja métrica utilizada foi a área abaixo da curva entre precisão e revocação (pr_auc).
+
+- Random Forest Classifier:
+  - Melhor "X_train" com 20 features; e
+  - Precision Recall AUC:  0.8799720356171663
+- XGBoost Classifier:
+  - Melhor "X_train" com 14 features; e
+  - Precision Recall AUC:  0.8938019204177713
+- Gradient Boosting Classifier:
+  - Melhor "X_train" com 13 features; e
+  - Precision Recall AUC:  0.8586441590501775
 
 ### Tunagem de Hiperparâmetros
 
-- Bayesian Search, Optuna
+Optei por utilizar a pesquisa Bayesiana da biblioteca Optuna. Utilizei as features selecionadas pelo Recursive Feature Selection para evitar overfitting.
 
-## Análise de Negócio
+Melhores hiperparâmetros:
 
-- Modelo escolhido:
-  - Score Cross Validation
-  - Average Precision
-  - Precision Score
-  - Recall Score
-  - F1 Score
-  - ROC AUC Score
+- Random Forest Classifier:
+  - {'n_estimators': 277, 'max_depth': 31, 'min_samples_split': 4, 'min_samples_leaf': 6, 'max_features': 0.6610560738295206}
+- XGBoost Classifier:
+  - {'n_estimators': 227, 'max_depth': 5, 'learning_rate': 0.4112354775681158, 'gamma': 0.09972654226276964}
+- Gradient Boosting Classifier:
+  - {'n_estimators': 233, 'max_depth': 7, 'learning_rate': 0.11008445645768045, 'min_samples_split': 13, 'min_samples_leaf': 9, 'max_features': 0.9996811582073081}
 
-Inserir um ou dois exemplos do benefício de aplicação do modelo de ML no contexto de negócio visando lucro.
+### Modelo escolhido
+
+Escolhi o XGBoost Classifier pelas razões abaixo:
+
+- Possui uma revocação mais alta e identificou melhor os inadimplentes. 
+- Tempo de treinamento do modelo e respectiva tunagem de hiperparâmetros são rápidos, resultando em pouco tempo de atraso na resposta;
+- Em produção não utiliza tanto processamento e memória; e
+- O arquivo pickle do XGBoost Classifier é o mais leve.
+
+## Aplicação Prática de Negócio
+
+A performance do modelo escolhido:
+
+- **Média da Precisão (Weighted):** 93.71%
+- **Média da Revocação (Weighted):** 93.70%
+- **Média do F1 Score (Weighted):** 93.46%
+- **Precisão x Revocação, Área abaixo da Curva:** 92.15%
+
+O Recall nos diz que de todos os clientes que de fato não pagaram, o modelo conseguiu acertar 93.70% dos casos. Contudo, o modelo acertou apenas 93.71% dos casos em que ele previu que os clientes não pagariam.
+
+**Inserindo em um contexto para visualizar a aplicabilidade deste modelo no negócio**
+- Como não sabemos em quanto tempo um cliente pagará o empréstimo ou quanto está pagando por período, temos a proposta abaixo:
+
+--------------------------------------------------------------------------------
+Não conceder o valor de empréstimo solicitado pelos clientes inadimplentes.
+
+--------------------------------------------------------------------------------
+
+## Resultado
+- Evitaríamos perder: R$ 5.075.275,00 (5 milhões).
+- **Lucro Bruto** de: R$ 2.594.183,73 (2.6 milhões)
+- Perderíamos: R$ 1.134.276,95 (1.1 milhão)
+- Gerando um **Total Líquido** de: R$ 1.251.413,78 (1.3 milhão)
+- No início concedemos R$ 21.649.350,00 (21.6 milhões) e terminamos com o saldo final de R$ 22.930.088,78 (23 milhões).
+
+Isso tudo com um baixo custo computacional e também com praticidade na manutenção do modelo para posterior melhorias.
+
+O cenário ideal seria reduzir os falsos negativos à zero, entretanto, reduzir o threshold faz com que os falsos positivos aumentem substancialmente enquanto os falsos negativos diminuem em pequena quantia. Aumentar a revocação e diminuir a precisão pode ter custos maiores futuramente a depender da decisão de conceder empréstimos maiores e pode não ser mais viável um ajuste visando aumentar a revocação.
 
 ## Desafios Relevantes encontrados
 
