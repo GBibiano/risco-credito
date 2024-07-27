@@ -30,10 +30,10 @@ Entregar um site do gênero bancário, fictício, que permite o acesso e cadastr
 - Desenvolvimento Frontend
 - Desenvolvimento Backend
 - Análise Exploratória de Dados
-- Perguntas Relevantes de Negócio
 - Modelo de Machine Learning
 - Tunagem de Hiperparâmetros
 - Análise de Negócio
+- Deploy
 - Desafios Relevantes encontrados
 
 ## Entendimento do Contexto de Negócio
@@ -57,19 +57,10 @@ Entregar um site do gênero bancário, fictício, que permite o acesso e cadastr
 
 ## Análise Exploratória de Dados
 
-##### Descrição do problema
+#### Descrição do problema
   Quando se trata de trabalhar com dados em um banco é esperado que a concessão de empréstimos seja rigorosamente avaliada com base em argumentos. Um dos problemas dessa empresa em específico era de prever quando uma concessão de empréstimo à um cliente resulta em inadimplência. A inadimplência ocorre quando uma pessoa física ou jurídica deixa de cumprir uma obrigação financeira dentro do prazo estipulado. Com a intenção de sanar este problema, pedimos uma base de dados dos clientes para elaborar uma solução utilizando algoritmos de aprendizagem de máquina.
 
-##### Importação de libs
-
-Na EDA utilizei apenas:
-- pandas;
-- numpy;
-- matplotlib;
-- seaborn;
-- **pickle**: este para serialização dos dados
-
-##### Informações do dataset
+#### Informações do dataset
 
 - **`idade_cliente`**: Idade do cliente
 - **`renda_cliente`**: Renda anual do cliente
@@ -86,7 +77,7 @@ Na EDA utilizei apenas:
 
 Reduzimos o tamanho do dataset de 3.0 MB para 1.6 MB alterando o tipo das features
 
-##### Tratamento de dados nulos, duplicados, outliers
+#### Tratamento de dados nulos, duplicados, outliers
 
 O dataset possuía:
 
@@ -95,7 +86,7 @@ O dataset possuía:
 
 Decidi por retirar as 3.116 instâncias de taxa de juros para evitar incluir viés fictício nos dados que poderia gerar underfitting mais à frente e preenchi os nulos de anos trabalhados com o valor mais frequente (moda).
 
-##### Verificando padrões nos dados
+#### Verificando padrões nos dados
 
 Executei a Análise univariada e bivariada em:
   - Variáveis Numéricas:
@@ -108,7 +99,7 @@ Executei a Análise univariada e bivariada em:
     - Gráficos de Violino
     - Histogramas
       
-###### Resultados Principais da EDA
+#### Resultados Principais da EDA
   
   - Todas as features envolvidas possuem uma **assimetria positiva, uma cauda à direita**.
   - **`idade_cliente`**: A população do dataset é composta majoritariamente por jovens e adultos entre 21 e 35 anos.
@@ -181,7 +172,7 @@ Ao final exportei o arquivo pickle da base de dados para utilizar na modelagem.
 
 ### Modelagem
 
-Optei por utilizar três modelos:
+Optei por utilizar três modelos que lidam relativamente bem com dados desbalanceados:
 
 - Random Forest Classifier;
 - XGBoost Classifier;
@@ -200,17 +191,18 @@ Utilizei principalmente duas funções:
   - Retorna o modelo treinado, X_test, y_test e y_pred
 - **`rfe_report()`:**
   - Exibe um relatório até destacar o Recursive Feature Elimination que obteve a melhor métrica.
+  - Retorna as features da melhor métrica
   
-##### Correlação de Pearson
+#### Correlação de Pearson
 
 Há uma correlação positiva moderada entre as variáveis:
 
 - **`idade_cliente`** e **`tempo_credito_cliente`**; e
 - **`taxa_juros_emprestimo`** e **`historico_inadimplencia_cliente`**
 
-##### Feature Engineering
+#### Feature Engineering
 
-Executei:
+Criei as features com:
 - Médias e desvios-padrão de features; e
 - Ratios: divisão de uma feature por outra.
 
@@ -228,7 +220,7 @@ Criando 11 features adicionais e totalizando 23, sendo elas:
 10. ratio_emprego_renda = tempo_emprego_cliente dividido por renda_cliente
 11. ratio_credito_renda = tempo_credito_cliente dividido por renda_cliente
 
-##### Avaliando a performance de modelos e respectivas features importances
+#### Avaliando a performance de modelos e respectivas features importances
 
 Para evitar overfitting e capturar ruídos dos dados, preferi verificar a importância das features em cada modelo e tratar as piores posteriormente com RFE. Os modelos foram treinados com 10 folds no StratifiedKFold (SKF) em razão do desbalanceamento de classes, situação em que o SKF lida bem na distribuição de folds em treino e teste estratificando-os.
 
@@ -277,7 +269,7 @@ O modelo que se saiu melhor em termos de minimizar os falsos positivos foi o Ran
 
 O modelo com a pior performance foi o Gradient Boosting Classifier.
 
-##### Feature Selection
+#### Feature Selection
 
 Utilizei o RFE (Recursive Feature Elimination). Testei a quantidade de features cuja métrica utilizada foi a área abaixo da curva entre precisão e revocação (pr_auc).
 
@@ -298,18 +290,27 @@ Optei por utilizar a pesquisa Bayesiana da biblioteca Optuna. Utilizei as featur
 Melhores hiperparâmetros:
 
 - Random Forest Classifier:
-  - {'n_estimators': 277, 'max_depth': 31, 'min_samples_split': 4, 'min_samples_leaf': 6, 'max_features': 0.6610560738295206}
+  - Média da Precisão (Weighted): 93.38%
+  - Média da Revocação (Weighted): 93.28%
+  - Média do F1 Score (Weighted): 92.95%
+  - Precisão x Revocação, Área abaixo da Curva: 90.19%
 - XGBoost Classifier:
-  - {'n_estimators': 227, 'max_depth': 5, 'learning_rate': 0.4112354775681158, 'gamma': 0.09972654226276964}
+  - Média da Precisão (Weighted): 93.71%
+  - Média da Revocação (Weighted): 93.70%
+  - Média do F1 Score (Weighted): 93.46%
+  - Precisão x Revocação, Área abaixo da Curva: 92.15%
 - Gradient Boosting Classifier:
-  - {'n_estimators': 233, 'max_depth': 7, 'learning_rate': 0.11008445645768045, 'min_samples_split': 13, 'min_samples_leaf': 9, 'max_features': 0.9996811582073081}
+  - Média da Precisão (Weighted): 93.77%
+  - Média da Revocação (Weighted): 93.67%
+  - Média do F1 Score (Weighted): 93.38%
+  - Precisão x Revocação, Área abaixo da Curva: 92.78%
 
 ### Modelo escolhido
 
 Escolhi o XGBoost Classifier pelas razões abaixo:
 
 - Possui uma revocação mais alta e identificou melhor os inadimplentes. 
-- Tempo de treinamento do modelo e respectiva tunagem de hiperparâmetros são rápidos, resultando em pouco tempo de atraso na resposta;
+- Tempo de treinamento do modelo e respectiva tunagem de hiperparâmetros são rápidos, resultando em pouco tempo de atraso na atualização do mesmo;
 - Em produção não utiliza tanto processamento e memória; e
 - O arquivo pickle do XGBoost Classifier é o mais leve.
 
@@ -343,10 +344,11 @@ Isso tudo com um baixo custo computacional e também com praticidade na manuten�
 
 O cenário ideal seria reduzir os falsos negativos à zero, entretanto, reduzir o threshold faz com que os falsos positivos aumentem substancialmente enquanto os falsos negativos diminuem em pequena quantia. Aumentar a revocação e diminuir a precisão pode ter custos maiores futuramente a depender da decisão de conceder empréstimos maiores e pode não ser mais viável um ajuste visando aumentar a revocação.
 
+## Deploy
+
+ASD.
+
 ## Desafios Relevantes encontrados
 
-- Problema: transformar o banco de dados de `.csv` para `.sql` ou `.db`.
-  - Solução: código em Python da library Pandas executa a transformação.
-- Problema: encontrar um bom banco de dados para o problema de risco de crédito.
 - Problema: integrar o modelo de ML para prever através da lib FastAPI e Pickle com o site
 - ...
