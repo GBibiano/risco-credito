@@ -102,3 +102,5 @@ def model(new_data: dict, tuning: bool=False) -> Pipeline:
     # retorna o classificador em pickle; e
     # acurácia, classification_report, confusion_matrix em pickle
     dump_model(xgb_treinado)
+    
+    return xgb_treinado

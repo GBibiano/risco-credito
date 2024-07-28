@@ -22,14 +22,14 @@ def load_classifier(modelo) -> pickle.load:
         return classifier
 
 # salva um modelo em arquivo pickle
-def dump_model(xgb_optuna_fit):
+def dump_model(xgb_optuna_fit) -> XGBClassifier:
     # modelo que está sendo salvo
     with open(f'xgboostclassifier.pkl', mode='wb') as f:
         pickle.dump(xgb_optuna_fit, f)
         return '[INFO] Modelo salvo com sucesso.'
 
 # carrega o XGBoost padrão ou com a tunagem de hiperparâmetros
-def classificador(optuna: bool=False):
+def classificador(optuna: bool=False) -> XGBClassifier:
     if optuna:
         hiperparametros = optuna_tuning()
         xgbclassifier_optuna = XGBClassifier(

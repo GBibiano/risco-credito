@@ -66,5 +66,6 @@ def optuna_tuning():
     print("Tempo total de execução do estudo: ", duration)
 
     hiperparametros_json = {'Melhores hiperparâmetros': study.best_params}
+    print(hiperparametros_json)
     
     return study.best_params

@@ -4,7 +4,7 @@ import uvicorn
 from fastapi import FastAPI
 
 # importa o arquivo model e sua função principal
-from data_processor import model, new_data_processing_
+from data_processor import new_data_processing_
 from dumpster import load_classifier
 
 # importa  o arquivo com a função de validação de dados de pydantic BaseModel
@@ -20,7 +20,7 @@ new_data = dict()
 
 # se as novas entradas de dados do método .get somarem o total de 5 clientes,
 # retreina o modelo, cria o pickle e substitui-o em tempo de execução
-def remodel():
+def remodel() -> None:
     # se atingir o limite de 5 inputs, remodela
     global limite_remodelagem, new_data_count
     if new_data_count >= limite_remodelagem:
@@ -28,9 +28,7 @@ def remodel():
         # pré-processa, mescla com dataset original,
         # remodela, substitui o pickle atual, retorna performance em json e
         # retorna confusion_matrix em formato de imagem.
-        model(new_data) # optuna=True
-        # Aqui deve ser garantido que o novo arquivo seja utilizado como classificador
-        classifier = load_classifier(modelo)
+        classifier = model(new_data) # optuna=False
 
         # reseta o dicionário de novos dados após conclusão da remodelagem.
         new_data = dict()
@@ -53,7 +51,6 @@ def index():
 
 # Expor a função de predição, fazer uma predição com base em input '.json'
 # e retornar o respectivo resultado
-# É um teste da utilização do BaseModel da biblioteca pydantic
 @app.post("/predict/")
 def predict_post(
     val_idade_cliente: int,
@@ -63,8 +60,7 @@ def predict_post(
     val_finalidade_emprestimo: str,
     val_valor_emprestimo: int,
     ):
-    global new_data_count, new_data
-    new_data = {f"cliente_{new_data_count}": [ 
+    temporary_new_data = {new_data_count: [ 
         val_idade_cliente,
         val_renda_cliente,
         val_posse_residencia_cliente,
@@ -79,7 +75,7 @@ def predict_post(
         None
         ]}
     
-    predict_info = new_data_processing_(new_data, predict=True)
+    predict_info = new_data_processing_(temporary_new_data, predict=True)
     
     prediction = classifier.predict(predict_info)
     if prediction[0] == 0:
@@ -102,7 +98,7 @@ def predict_get(
     val_valor_emprestimo: int,
     ):
     global new_data_count, new_data
-    new_data = {f"cliente_{new_data_count}": [ 
+    new_data = {new_data_count: [ 
         val_idade_cliente,
         val_renda_cliente,
         val_posse_residencia_cliente,
@@ -119,7 +115,7 @@ def predict_get(
     
     new_data_count += 1
     
-    predict_info = new_data_processing_(new_data, predict=True)
+    predict_info = new_data_processing_(new_data[new_data_count], predict=True)
     
     prediction = classifier.predict(predict_info)
     if prediction[0] == 0:

@@ -45,6 +45,7 @@ def new_data_processing_(new_data: dict=None, predict: bool=False) -> pd.DataFra
     # 6. Para evitar dados nulos, acrescentarei novos clientes com um viés fictício e aleatório de status_emprestimo.
     df['status_emprestimo'] = df['status_emprestimo'].apply(lambda x: rd.random_choice(0, 1) if pd.isnull(x) else x)
     
+    # Feature Engineering
     # faremos o preenchimento do resto das variáveis antes do merge com o dataset original
     # 1. 
     df['retorno_emprestimo'] = df['valor_emprestimo'] * (df['taxa_juros_emprestimo'] / 100 + 1)
@@ -69,9 +70,6 @@ def new_data_processing_(new_data: dict=None, predict: bool=False) -> pd.DataFra
     # 11.
     df['ratio_credito_renda'] = df['tempo_credito_cliente'] / df['renda_cliente']
     
-    df_original = load_df()
-    df_merged = df_original.append(df) # alterar
-    
     # para o predict em produção
     if predict:    
         predict_columns = ['idade_cliente',
@@ -93,5 +91,8 @@ def new_data_processing_(new_data: dict=None, predict: bool=False) -> pd.DataFra
         predict_info = df.loc[0, predict_columns].tolist()
         
         return [predict_info]
+    
+    df_original = load_df()
+    df_merged = df_original.append(df) # alterar
     
     return df_merged
