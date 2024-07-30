@@ -1,19 +1,15 @@
-import random as rd
 import pandas as pd
+import random as rd
 from category_encoders import TargetEncoder
 
-# arquivos
-from load_df import load_df
 
+def processed_predict(new_data: dict, count: int) -> list[list]:
+    # Obter os valores associados à chave
+    data_values = new_data[count]
 
-# Pré-processamento dos dados do input
-def new_data_processing_(new_data: dict) -> pd.DataFrame:
-    # para o treinamento em produção
-    # Dados devem sofrer processamento de dados para serem acrescidos ao dataset
-    # Convertendo o dicionário em DataFrame
-    df_new_data = pd.DataFrame.from_dict(
-        new_data,
-        orient="index",
+    print("[INFO] predict.py: data_values: ", data_values)
+    df = pd.DataFrame(
+        [data_values],
         columns=[
             "idade_cliente",
             "renda_cliente",
@@ -30,9 +26,7 @@ def new_data_processing_(new_data: dict) -> pd.DataFrame:
         ],
     )
 
-    # importa o DataFrame da EDA
-    df_original = load_df()
-    df = pd.concat([df_original, df_new_data], ignore_index=True)
+    print("[INFO] Dados a serem previstos: ", df.loc[0, :])
 
     # O objetivo de treinar em produção é de montar portifolio, logo, o correto seria acrescentar dados
     # de treino/teste caso eles já tivessem os rótulos definidos previamente pelo banco.
@@ -74,7 +68,7 @@ def new_data_processing_(new_data: dict) -> pd.DataFrame:
     print("[INFO] 6")
 
     # Feature Engineering
-    # faremos o preenchimento do resto das variáveis após o merge com o dataset original
+    # faremos o preenchimento do resto das variáveis antes do merge com o dataset original
     # 1.
     df["retorno_emprestimo"] = df["valor_emprestimo"] * (
         df["taxa_juros_emprestimo"] / 100 + 1
@@ -99,9 +93,10 @@ def new_data_processing_(new_data: dict) -> pd.DataFrame:
     ].transform("mean")
     print("[INFO] 5")
     # 6.
-    df["std_valemp_residencia"] = df.groupby(["posse_residencia_cliente"])[
-        "valor_emprestimo"
-    ].transform("std")
+    df["std_valemp_residencia"] = 0
+    # df["std_valemp_residencia"] = df.groupby(["posse_residencia_cliente"])[
+    #    "valor_emprestimo"
+    # ].transform("std")
     print("[INFO] 6")
     # 7.
     df["media_renda_nota"] = df.groupby(["nota_emprestimo"])["renda_cliente"].transform(
@@ -126,21 +121,26 @@ def new_data_processing_(new_data: dict) -> pd.DataFrame:
     print("[INFO] 11")
 
     # encoding de variáveis categóricas
-    # cat_features = [
-    #    "posse_residencia_cliente",
-    #    "finalidade_emprestimo",
-    #    "nota_emprestimo",
-    # ]
+    cat_features = [
+        "posse_residencia_cliente",
+        "finalidade_emprestimo",
+        "nota_emprestimo",
+    ]
 
     # Aplica o TargetEncoder
-    # encoder = TargetEncoder(cols=cat_features)
-    # df_encoded = encoder.fit_transform(df[cat_features], df["status_emprestimo"])
-    # df.posse_residencia_cliente = df_encoded.posse_residencia_cliente
-    # df.finalidade_emprestimo = df_encoded.finalidade_emprestimo
-    # df.nota_emprestimo = df_encoded.nota_emprestimo
+    encoder = TargetEncoder(cols=cat_features)
+    df_encoded = encoder.fit_transform(df[cat_features], df["status_emprestimo"])
+    df.posse_residencia_cliente = df_encoded.posse_residencia_cliente
+    df.finalidade_emprestimo = df_encoded.finalidade_emprestimo
+    df.nota_emprestimo = df_encoded.nota_emprestimo
+
+    # caso seja 1 cliente só
+    df[df["std_valemp_residencia"] == 0.0] = df[
+        df["std_valemp_residencia"] == 0.0
+    ].replace({0.0: 1})
 
     # para o predict em produção
-    rfe_columns = [
+    predict_columns = [
         "idade_cliente",
         "renda_cliente",
         "posse_residencia_cliente",
@@ -157,7 +157,10 @@ def new_data_processing_(new_data: dict) -> pd.DataFrame:
         "ratio_emprego_renda",
     ]
 
-    print("[INFO] data_processor.py: ", df[rfe_columns].loc[:, :])
-    print("[INFO] data_processor.py: ", df[rfe_columns].dtypes)
+    print("DataFrame após o encoding:")
+    print(df[predict_columns].loc[0, :])
+    print(df[predict_columns].dtypes)
 
-    return df
+    predict_info = df.loc[0, predict_columns]
+    print("[INFO] predict_info", predict_info)
+    return [predict_info]
