@@ -1,0 +1,10 @@
+uvicorn
+fastapi
+scikit-learn
+pandas
+xgboost
+pydantic
+matplotlib.pyplot
+seaborn
+optuna
+optuna.logging
