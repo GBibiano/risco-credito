@@ -285,7 +285,8 @@ Utilizei o RFE (Recursive Feature Elimination). Testei a quantidade de features 
   - Melhor "X_train" com 13 features; e
   - Precision Recall AUC:  0.8586441590501775
  
-Após o RFE, das 14 features que foram selecionadas para o XGBoost Classifier, 
+Após o RFE, 7 das 14 features que foram selecionadas para o **XGBoost Classifier** são do DataFrame original.
+
 **Importância das Features (maior para menor)**
 | feature   | Descrição      |
 | :---------- | :--------- |
@@ -306,27 +307,27 @@ Após o RFE, das 14 features que foram selecionadas para o XGBoost Classifier,
 
 ### Tunagem de Hiperparâmetros
 
-Optei por utilizar a pesquisa Bayesiana da biblioteca Optuna. Utilizei as features selecionadas pelo Recursive Feature Selection para evitar overfitting.
+Optei por utilizar a pesquisa Bayesiana da biblioteca **Optuna**. Utilizei as features selecionadas pelo Recursive Feature Selection para evitar overfitting.
 
 Performance dos modelos após a tunagem de hiperparâmetros:
 
-- Random Forest Classifier:
+- **Random Forest Classifier**:
   - Média da Precisão (Weighted): 93.38%
   - Média da Revocação (Weighted): 93.28%
   - Média do F1 Score (Weighted): 92.95%
   - Precisão x Revocação, Área abaixo da Curva: 90.19%
-- XGBoost Classifier:
+- **XGBoost Classifier**:
   - Média da Precisão (Weighted): 93.71%
   - Média da Revocação (Weighted): 93.70%
   - Média do F1 Score (Weighted): 93.46%
   - Precisão x Revocação, Área abaixo da Curva: 92.15%
-- Gradient Boosting Classifier:
+- **Gradient Boosting Classifier**:
   - Média da Precisão (Weighted): 93.77%
   - Média da Revocação (Weighted): 93.67%
   - Média do F1 Score (Weighted): 93.38%
   - Precisão x Revocação, Área abaixo da Curva: 92.78%
  
-O modelo XGBoost Classifier possui a maior revocação, os melhores hiperparâmetros foram:
+O modelo **XGBoost Classifier** possui a maior revocação, os melhores hiperparâmetros foram:
 
 | Parâmetro   | Valor      |
 | :---------- | :--------- |
@@ -346,7 +347,7 @@ gamma = trial.suggest_float('gamma', 0.001, 1.0)
 
 ### Modelo escolhido
 
-Escolhi o XGBoost Classifier pelas razões abaixo:
+Escolhi o **XGBoost Classifier** pelas razões abaixo:
 
 - Possui uma revocação mais alta e identificou melhor os inadimplentes. 
 - Tempo de treinamento do modelo e respectiva tunagem de hiperparâmetros são rápidos, resultando em pouco tempo de atraso na atualização do mesmo;
@@ -426,6 +427,7 @@ Não conceder o valor de empréstimo solicitado pelos clientes inadimplentes.
 --------------------------------------------------------------------------------
 
 ## Resultado
+
 - Evitaríamos perder: R$ 5.075.275,00 (5 milhões).
 - **Lucro Bruto** de: R$ 2.594.183,73 (2.6 milhões)
 - Perderíamos: R$ 1.134.276,95 (1.1 milhão)
