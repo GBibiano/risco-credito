@@ -18,10 +18,11 @@ Entregar um site do gênero bancário, fictício, que permite o acesso e cadastr
 - **Previsão do Risco de Crédito**
   - **Análise Exploratória de Dados**
   - **Modelagem**
-    - Feature Importance & Scaling
+    - Feature Engineering, Importance, Scaling & Selection
     - Validação Cruzada
     - Tunagem de Hiperparâmetros
     - Deploy de Modelo para Previsão de Risco de Crédito
+      - Remodelagem em deploy
     - Impacto do modelo no contexto de negócio
    
 ## Apêndice
@@ -32,9 +33,10 @@ Entregar um site do gênero bancário, fictício, que permite o acesso e cadastr
 - Análise Exploratória de Dados
 - Modelo de Machine Learning
 - Tunagem de Hiperparâmetros
-- Análise de Negócio
 - Deploy
-- Desafios Relevantes encontrados
+- Aplicação Prática de Negócio
+- Resultado
+
 
 ## Entendimento do Contexto de Negócio
 
@@ -282,12 +284,31 @@ Utilizei o RFE (Recursive Feature Elimination). Testei a quantidade de features 
 - Gradient Boosting Classifier:
   - Melhor "X_train" com 13 features; e
   - Precision Recall AUC:  0.8586441590501775
+ 
+Após o RFE, das 14 features que foram selecionadas para o XGBoost Classifier, 
+**Importância das Features (maior para menor)**
+| feature   | Descrição      |
+| :---------- | :--------- |
+| `idade_cliente`      | Idade do Cliente |
+| `renda_cliente`      | Renda do Cliente |
+| `posse_residencia_cliente`      | Tipo de posse de residência |
+| `tempo_emprego_cliente`      | Anos trabalhados |
+| `finalidade_emprestimo`      | Finalidade do empréstimo |
+| `nota_emprestimo`      | Grau atribuido ao empréstimo |
+| `taxa_juros_emprestimo`      | Taxa de Juros do empréstimo |
+| `percentual_renda_emprestimo`      | Razão do empréstimo sobre a renda |
+| `retorno_emprestimo`      | Valor retornado ao banco ao quitar o empréstimo |
+| `ratio_renda_emp`      | Razão da renda sobre o empréstimo |
+| `media_valemp_nota`      | Média do valor do empréstimo por cada grau |
+| `media_valemp_finalidade`      | Média do valor do empréstimo por finalidade |
+| `std_valemp_residencia`      | Desvio-Padrão do valor do empréstimo por posse de residência |
+| `ratio_emprego_renda`      | Razão de anos trabalhados pela renda do cliente |
 
 ### Tunagem de Hiperparâmetros
 
 Optei por utilizar a pesquisa Bayesiana da biblioteca Optuna. Utilizei as features selecionadas pelo Recursive Feature Selection para evitar overfitting.
 
-Melhores hiperparâmetros:
+Performance dos modelos após a tunagem de hiperparâmetros:
 
 - Random Forest Classifier:
   - Média da Precisão (Weighted): 93.38%
@@ -304,6 +325,24 @@ Melhores hiperparâmetros:
   - Média da Revocação (Weighted): 93.67%
   - Média do F1 Score (Weighted): 93.38%
   - Precisão x Revocação, Área abaixo da Curva: 92.78%
+ 
+O modelo XGBoost Classifier possui a maior revocação, os melhores hiperparâmetros foram:
+
+| Parâmetro   | Valor      |
+| :---------- | :--------- |
+| `n_estimators`      | 227 |
+| `max_depth`      | 12 |
+| `learning_rate`      | 0.4112354775681158 |
+| `gamma`      | 0.09972654226276964 |
+
+O respectivo espaço de busca do XGBoost que durou menos de 5 minutos:
+
+```bash
+n_estimators = trial.suggest_int('n_estimators', 50, 300)
+max_depth = trial.suggest_int('max_depth', 2, 32, log=True)
+learning_rate = trial.suggest_float('learning_rate', 0.001, 1.0)
+gamma = trial.suggest_float('gamma', 0.001, 1.0)
+```
 
 ### Modelo escolhido
 
@@ -313,6 +352,59 @@ Escolhi o XGBoost Classifier pelas razões abaixo:
 - Tempo de treinamento do modelo e respectiva tunagem de hiperparâmetros são rápidos, resultando em pouco tempo de atraso na atualização do mesmo;
 - Em produção não utiliza tanto processamento e memória; e
 - O arquivo pickle do XGBoost Classifier é o mais leve.
+
+## Deploy
+
+Resumidamente, um usuário pode fazer uma requisição GET via URL e a resposta retornada é a previsão se o cliente irá pagar ou não o empréstimo.
+
+Utilizamos a biblioteca padrão `Random` para facilitar o processo:
+  - De predição em deploy fiz a inserção de dados fictícios para preencher informações que o banco deveria fornecer, como por exemplo, taxa de juros do empréstimo.
+  - Da remodelagem em deploy também foi necessário que utilizássemos dados fictícios na inserção da variável target, tarefa associada ao treino e teste.
+
+A remodelagem em deploy ocorre sempre que a previsão de 5 novos clientes é feita e substitui o classificador que está sendo utilizado. Apenas um número fictício.
+
+- Podemos inicializar o arquivo com o comando `uvicorn app:app --reload` no terminal.
+- No destino web `http://127.0.0.1:8000/docs` podemos fazer uma requisição POST para testar a função predict; ou
+- Executar uma requisição GET através de URL, um exemplo de um cliente com 34 anos, 56.000 de renda anual, com casa alugada, com 20 anos trabalhados e que solicitou o empréstimo de 28.000 para uso pessoal:
+  - `http://127.0.0.1:8000/predict?val_idade_cliente=34&val_renda_cliente=56000&val_posse_residencia_cliente=Alugada&val_tempo_emprego_cliente=20&val_finalidade_emprestimo=Pessoal&val_valor_emprestimo=28000`
+  - O restante das features exigidas pelo Recursive Feature Elimination na modelagem feita em [modelagem.ipynb](https://github.com/Menotso/risco-credito/blob/main/Modelagem_ML/modelagem.ipynb) é processado pelos módulos na pasta da FastAPI com dados fictícios
+
+Reutilizei as funções existentes no arquivo modelagem com pequenas alterações e principalmente, fiz os seguintes módulos:
+
+- **app.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/app.py)
+  - arquivo com a FastAPI
+- **load_classifier.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/load_classifier.py)
+  - Carrega um classificador ao iniciar o **app.py**
+- **predict.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/predict.py)
+  - Faz encoding de features categóricas com `TargetEncoder`
+  - Efetua o Feature Engineering
+  - Retorna os dados formatados para o classificador executar a previsão
+- **tuning.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/tuning.py)
+  - Executa a tunagem de hiperparâmetros do modelo XGBoostClassifier com Optuna, retorna melhores hiperparâmetros.
+- **classificador.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/classificador.py)
+  - Opcionalmente, faz a tunagem de hiperparâmetros ou utiliza os melhores hiperparâmetros encontrados pela primeira modelagem.
+  - Serve para instanciar um classificador no momento de executar a remodelagem em deploy
+- **data_processor.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/data_processor.py)
+  - Cria um DataFrame com as informações do cliente
+  - Utiliza **load_df.py** ([visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/load_df.py)) para carregar o dataset original e mescla os dois
+  - Efetua o Feature Engineering
+  - Retorna o DataFrame processado
+  - Faz o processamento de dados enviados pela requisição GET do FastAPI antes de remodelar 
+- **model.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/model.py)
+  - Chama o dataframe retornado por **data_processor.py** para separar a variável alvo das independentes
+  - Verifica se há necessidade de tunagem de hiperparâmetros, caso não, chama os melhores da primeira modelagem
+  - Utiliza as features resultantes do Recursive Feature Elimination da primeira modelagem
+  - Chama **train_model.py** para treinar o modelo
+  - Utiliza o **dump_model.py** ([visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/dump_model.py)) para serializar o arquivo da remodelagem em formato `pickle`
+  - Retorna o modelo resultante da remodelagem
+- **train_model**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/train_model.py)
+  - Treina o modelo
+  - Faz encoding de features categóricas com `Target Encoder`
+  - Normaliza com `StandardScaler`
+  - Faz o split em folds de treino/teste com `StratifiedKFold`
+  - Executa validação cruzada com `cross_validate`
+  - Salva a feature importance e métricas em formato `.json`
+  - Salva a matriz de confusão em imagem `.png`
 
 ## Aplicação Prática de Negócio
 
@@ -343,12 +435,3 @@ Não conceder o valor de empréstimo solicitado pelos clientes inadimplentes.
 Isso tudo com um baixo custo computacional e também com praticidade na manutenção do modelo para posterior melhorias.
 
 O cenário ideal seria reduzir os falsos negativos à zero, entretanto, reduzir o threshold faz com que os falsos positivos aumentem substancialmente enquanto os falsos negativos diminuem em pequena quantia. Aumentar a revocação e diminuir a precisão pode ter custos maiores futuramente a depender da decisão de conceder empréstimos maiores e pode não ser mais viável um ajuste visando aumentar a revocação.
-
-## Deploy
-
-ASD.
-
-## Desafios Relevantes encontrados
-
-- Problema: integrar o modelo de ML para prever através da lib FastAPI e Pickle com o site
-- ...
