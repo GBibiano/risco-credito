@@ -1,6 +1,0 @@
-{
-    "report_precisao": "Precision Mean (Weighted): 93.58%",
-    "report_recall": "Recall Mean (Weighted): 93.57%",
-    "report_f1_score": "F1 Score Mean (Weighted): 93.32%",
-    "report_pr_auc": "Precision x Recall, Area Under the Curve: (92.28%) -> 0.9227654124855077"
-}
