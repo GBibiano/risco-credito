@@ -21,8 +21,7 @@ Entregar um site do gênero bancário, fictício, que permite o acesso e cadastr
     - Feature Engineering, Importance, Scaling & Selection
     - Validação Cruzada
     - Tunagem de Hiperparâmetros
-    - Deploy de Modelo para Previsão de Risco de Crédito
-      - Remodelagem em deploy
+    - Deploy (Predição e Remodelagem)
     - Impacto do modelo no contexto de negócio
    
 ## Apêndice
@@ -112,7 +111,10 @@ Executei a análise univariada e bivariada em:
     - Gráficos de Barras
       
 #### Resultados Principais da EDA
-  
+
+#### Variáveis Numéricas
+
+  ![numericas_eda1](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_EDA/numericas_eda1.png)
   - Todas as features envolvidas possuem uma **assimetria positiva, uma cauda à direita**.
   - **`idade_cliente`**: A população do dataset é composta majoritariamente por jovens e adultos entre 21 e 35 anos.
       - O maior grupo de clientes possui 23 anos com 3889 instâncias.
@@ -128,14 +130,27 @@ Executei a análise univariada e bivariada em:
   - **`tempo_credito_cliente`**: Metade do dataset está entre 0 e 5 anos e 1/3 do dataset está entre 5 e 10 anos de tempo de crédito do cliente.
       - O valor máximo está em aproximadamente 30 anos. Assumimos que não há outliers neste contexto.
       - Não sabemos a escala relativa de tempo, mas supomos que está em anos.
+
+#### Variáveis Categóricas
+
+Para efeitos de EDA, considerei como variáveis categóricas todas as features que possuem 7 valores únicos ou menos.
+
+  ![categoricas_eda1](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_EDA/categoricas_eda1.png)
   - **`posse_residencia_cliente`**: A maioria dos clientes alugam moradias e possuem hipoteca.
   - **`finalidade_emprestimo`**:  finalidade dos empréstimos possui uma leve assimetria positiva, sendo os três maiores motivos de solicitar empréstimo: Educação, Médico e Empreendimento.
   - **`nota_emprestimo`**: As notas de empréstimos mais presentes no dataframe são do tipo "A", "B" e "C".
   - **`historico_inadimplencia_cliente`**: Existe um desbalanceamento nestes dados exibindo **5.199** clientes (21.47%) com histórico de crédito ruim sendo minoria com uma proporção de **a cada 5 clientes um possui histórico de inadimplência.**
+
+#### Variável Target
+
+  ![target_eda](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_EDA/target_eda.png)
   - **`status_emprestimo`**: A variável alvo confirmou o desbalanceamento dos dados exibindo **6.459** clientes (21.96%) que estão classificados como inadimplentes com uma proporção de **a cada 4 clientes um é inadimplente.**
+
+#### Comparando as variáveis numéricas com o Target
 
 Após comparar todas as variáveis com o target e verificar a proporção de inadimplentes em cada uma, pudemos visualizar que:
 
+  ![numericas_eda2](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_EDA/numericas_eda2.png)
   - **`idade_cliente`**: idade do cliente.
       - Há uma participação relativamente constante dos inadimplentes em todos os intervalos.
       - A maior concentração de inadimplentes está no intervalo entre 20 e 40 anos de idade com 6.128 instâncias.
@@ -164,6 +179,10 @@ Após comparar todas as variáveis com o target e verificar a proporção de ina
       - A maior concentração de inadimplentes aparece nos intervalos entre 2 e 15 anos de tempo de crédito com 6.147 instâncias.
       - Há uma participação relativamente constante dos inadimplentes em todos os intervalos.
       - Os inadimplentes possuem uma representação de 27% nos intervalos com tempo de crédito registrado acima de 20 anos.
+
+#### Comparando as variáveis categóricas com o Target
+
+  ![categoricas_eda2](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_EDA/categoricas_eda2.png)
   - **`posse_residencia_cliente`**:
       - Os inadimplentes na maioria das vezes possuem **hipoteca ou moradia alugada**, representando 6.263 instâncias.
       - Inadimplentes representam 29% ou mais quando possuem **moradia alugada ou outra forma de posse**.
@@ -191,8 +210,8 @@ Ao final exportei o arquivo pickle da base de dados para utilizar na modelagem.
 Optei por utilizar três modelos que lidam relativamente bem com dados desbalanceados:
 
 - **Random Forest Classifier**;
-- **XGBoost Classifier**;
-- **Gradient Boosting Classifier**;
+- **Gradient Boosting Classifier**; e
+- **XGBoost Classifier**.
 
 Utilizei principalmente duas funções:
 
@@ -246,6 +265,7 @@ Para evitar overfitting e capturar ruídos dos dados, preferi verificar a import
     - Média da Revocação (Weighted): 93.44%
     - Média do F1 Score (Weighted): 93.04%
     - Precisão x Revocação, Área abaixo da Curva: 89.40%
+    ![rf_padrao](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/rf_padrao.png)
     - Top 5 Feature Importance:
       - Inserir tabela com features com maior importância do modelo de ML
         - ratio_renda_emp;
@@ -254,24 +274,13 @@ Para evitar overfitting e capturar ruídos dos dados, preferi verificar a import
         - taxa_juros_emprestimo;
         - media_valemp_nota;
     - Nenhuma feature sem importância para o modelo, sendo a menor **`historico_inadimplencia_cliente`** com 0.006285.
-- **XGBoost Classifier:**
-    - Média da Precisão (Weighted): 93.80%
-    - Média da Revocação (Weighted): 93.53%
-    - Média do F1 Score (Weighted): 93.16%
-    - Precisão x Revocação, Área abaixo da Curva: 90.81%
-    - Top 5 Feature Importance:
-        - Inserir tabela com features com maior importância do modelo de ML
-        - ratio_renda_emp
-        - nota_emprestimo
-        - posse_residencia_cliente
-        - tempo_emprego_cliente
-        - finalidade_emprestimo
-    - 1 feature sem importância para o modelo, sendo ela **`std_renda_residencia`**.
 - **Gradient Boosting Classifier:**
     - Média da Precisão (Weighted): 92.46%
     - Média da Revocação (Weighted): 92.21%
     - Média do F1 Score (Weighted): 91.71%
     - Precisão x Revocação, Área abaixo da Curva: 86.61%
+    - Matriz de Confusão:
+    ![gbc_padrao](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/gbc_padrao.png)
     - Top 5 Feature Importance:
         - Inserir tabela com features com maior importância do modelo de ML
         - ratio_renda_emp
@@ -280,6 +289,21 @@ Para evitar overfitting e capturar ruídos dos dados, preferi verificar a import
         - posse_residencia_cliente
         - renda_cliente
     - 8 features sem importância para o modelo, sendo 4 delas do DataFrame original.
+- **XGBoost Classifier:** 
+    - Média da Precisão (Weighted): 93.80%
+    - Média da Revocação (Weighted): 93.53%
+    - Média do F1 Score (Weighted): 93.16%
+    - Precisão x Revocação, Área abaixo da Curva: 90.81%
+    - Matriz de confusão:
+    ![xgb_padrao](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/xgb_padrao.png)
+    - Top 5 Feature Importance:
+        - Inserir tabela com features com maior importância do modelo de ML
+        - ratio_renda_emp
+        - nota_emprestimo
+        - posse_residencia_cliente
+        - tempo_emprego_cliente
+        - finalidade_emprestimo
+    - 1 feature sem importância para o modelo, sendo ela **`std_renda_residencia`**.
 
 O modelo que se saiu melhor em termos de minimizar os falsos positivos foi o Random Forest Classifier, contudo, desejamos diminuir o número de clientes inadimplentes que o modelo erra (falsos negativos). Logo o **XGBoost Classifier** obteve resultados melhores com um custo baixo de falsos positivos.
 
@@ -292,12 +316,12 @@ Utilizei o RFE (Recursive Feature Elimination). Testei a quantidade de features 
 - **Random Forest Classifier:**
   - Melhor "X_train" com 20 features; e
   - Precision-Recall AUC:  0.8799720356171663
-- **XGBoost Classifier:**
-  - Melhor "X_train" com 14 features; e
-  - Precision-Recall AUC:  0.8938019204177713
 - **Gradient Boosting Classifier:**
   - Melhor "X_train" com 13 features; e
   - Precision-Recall AUC:  0.8586441590501775
+- **XGBoost Classifier:**
+  - Melhor "X_train" com 14 features; e
+  - Precision-Recall AUC:  0.8938019204177713
 
 O modelo com a maior métrica de Precision-Recall AUC é o **XGBoost Classifier**.
  
@@ -332,17 +356,23 @@ Performance dos modelos após a tunagem de hiperparâmetros:
   - Média da Revocação (Weighted): 93.28%
   - Média do F1 Score (Weighted): 92.95%
   - Precisão x Revocação, Área abaixo da Curva: 90.19%
-- **XGBoost Classifier**:
-  - Média da Precisão (Weighted): 93.71%
-  - Média da Revocação (Weighted): 93.70%
-  - Média do F1 Score (Weighted): 93.46%
-  - Precisão x Revocação, Área abaixo da Curva: 92.15%
+  - Matriz de confusão:
+  ![rf_hiperparametros](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/rf_hiperparametros.png)
 - **Gradient Boosting Classifier**:
   - Média da Precisão (Weighted): 93.77%
   - Média da Revocação (Weighted): 93.67%
   - Média do F1 Score (Weighted): 93.38%
   - Precisão x Revocação, Área abaixo da Curva: 92.78%
- 
+  - Matriz de confusão:
+  ![gbc_hiperparametros](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/gbc_hiperparametros.png)
+- **XGBoost Classifier**:
+  - Média da Precisão (Weighted): 93.71%
+  - Média da Revocação (Weighted): 93.70%
+  - Média do F1 Score (Weighted): 93.46%
+  - Precisão x Revocação, Área abaixo da Curva: 92.15%
+  - Matriz de confusão:
+  ![xgb_hiperparametros](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/xgb_hiperparametros.png)
+
 O modelo **XGBoost Classifier** possui a maior revocação, os melhores hiperparâmetros foram:
 
 | Parâmetro   | Valor      |
@@ -432,6 +462,8 @@ Reutilizei as funções existentes no arquivo da modelagem com pequenas alteraç
 
 ## Aplicação Prática de Negócio
 
+Se encontra no final do arquivo **modelagem.ipynb** [visualizar código](https://github.com/Menotso/risco-credito/blob/main/Modelagem_ML/modelagem.ipynb)
+
 A performance do modelo escolhido:
 
 - **Média da Precisão (Weighted):** 93.71%
@@ -439,9 +471,10 @@ A performance do modelo escolhido:
 - **Média do F1 Score (Weighted):** 93.46%
 - **Precisão x Revocação, Área abaixo da Curva:** 92.15%
 
-O Recall nos diz que de todos os clientes que de fato não pagaram, o modelo conseguiu acertar 93.70% dos casos. Contudo, o modelo acertou apenas 93.71% dos casos em que ele previu que os clientes não pagariam.
+O Recall nos diz que de todos os clientes que de fato não pagaram, o modelo conseguiu acertar **93.70%** dos casos. Contudo, o modelo acertou apenas **93.71%** dos casos em que ele previu que os clientes não pagariam.
 
 **Inserindo em um contexto para visualizar a aplicabilidade deste modelo no negócio**
+
 - Como não sabemos em quanto tempo um cliente pagará o empréstimo ou quanto está pagando por período, temos a proposta abaixo:
 
 --------------------------------------------------------------------------------
@@ -451,11 +484,11 @@ O Recall nos diz que de todos os clientes que de fato não pagaram, o modelo con
 
 ## Resultado
 
-- Evitaríamos perder: R$ 5.075.275,00 (5 milhões).
-- **Lucro Bruto** de: R$ 2.594.183,73 (2.6 milhões)
-- Perderíamos: R$ 1.134.276,95 (1.1 milhão)
-- Gerando um **Total Líquido** de: R$ 1.251.413,78 (1.3 milhão)
-- No início concedemos R$ 21.649.350,00 (21.6 milhões) e terminamos com o saldo final de R$ 22.930.088,78 (23 milhões).
+- Evitaríamos perder: **R$ 5.075.275,00** (5 milhões).
+- **Lucro Bruto** de: **R$ 2.594.183,73** (2.6 milhões)
+- Perderíamos: **R$ 1.134.276,95** (1.1 milhão)
+- Gerando um **Total Líquido** de: **R$ 1.251.413,78** (1.3 milhão)
+- No início concedemos **R$ 21.649.350,00** (21.6 milhões) e terminamos com o saldo final de **R$ 22.930.088,78** (23 milhões).
 
 Isso tudo com um baixo custo computacional e também com praticidade na manutenção do modelo para posterior melhorias.
 
