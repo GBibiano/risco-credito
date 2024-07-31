@@ -1,4 +1,4 @@
-# Front/Back-end de um Banco Online com Previsão de Risco de Crédito
+# Previsão de Risco de Crédito em FastAPI
 
 ## Objetivos
 
@@ -6,15 +6,6 @@ Entregar um site do gênero bancário, fictício, que permite o acesso e cadastr
 
 ## Entregáveis
 
-- **Front/Back-end do Site**
-  - **Página**:
-    - inicial
-    - de Cadastro e Login
-    - de Perfil do cliente
-    - com relatório para a gestão
-  - **Perfis de acesso**:
-    - ao banco de dados
-    - às páginas do site
 - **Previsão do Risco de Crédito**
   - **Análise Exploratória de Dados**
   - **Modelagem**
@@ -26,33 +17,11 @@ Entregar um site do gênero bancário, fictício, que permite o acesso e cadastr
    
 ## Apêndice
 
-- Entendimento do Contexto de Negócio
-- Desenvolvimento Frontend
-- Desenvolvimento Backend
 - Análise Exploratória de Dados
 - Modelo de Machine Learning
 - Tunagem de Hiperparâmetros
 - Deploy (Predição e Remodelagem)
 - Aplicação Prática de Negócio
-
-## Entendimento do Contexto de Negócio
-
-- Explicar qual o contexto de negócio bancário, o que um cliente espera ao se filiar e vice versa.
-  - O que é um banco
-  - O que é um usuário para esse banco
-  - O que é um empréstimo
-  - Quais os tipos de agências bancárias e como essa maneira de gerir afeta o risco de crédito oferecido por um banco online
-  - ...**inserir mais tópicos interessantes de contextualização de negócio**...
-
-## Desenvolvimento Front-end
-
-- Tecnologias utilizadas:
-  - .
-
-## Desenvolvimento Back-end
-
-- Tecnologias utilizadas:
-  - .
 
 ## Análise Exploratória de Dados
 
@@ -436,7 +405,10 @@ A remodelagem em deploy ocorre sempre que a previsão de 5 novos clientes é fei
 Reutilizei as funções existentes no arquivo da modelagem com pequenas alterações e principalmente, fiz os seguintes módulos:
 
 - **app.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/app.py)
-  - arquivo com a FastAPI
+  - Arquivo com a FastAPI
+  - Disponibiliza o modelo em uma API
+  - Chama a função predict
+  - Chama a função remodelagem caso tenha previsto 5 novos clientes
 - **load_classifier.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/load_classifier.py)
   - Carrega um classificador ao iniciar o **app.py**
 - **predict.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/predict.py)
