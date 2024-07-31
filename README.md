@@ -1,5 +1,7 @@
 # Previsão de Risco de Crédito em FastAPI
 
+![tema](https://github.com/Menotso/risco-credito/blob/main/imagens/Tema.jpeg)
+
 ## Objetivos
 
 Entregar um site do gênero bancário, fictício, que permite o acesso e cadastro de clientes, visualização do empréstimo que possuem direito e saldo. Adicionalmente, existirá perfis de acesso onde a gestão poderá visualizar diretamente no site o impacto no negócio da implementação de um modelo de machine learning que prevê o risco de crédito dos clientes.
@@ -402,7 +404,15 @@ A remodelagem em deploy ocorre sempre que a previsão de 5 novos clientes é fei
 - Diretório da FastAPI [visualizar diretório](https://github.com/Menotso/risco-credito/tree/main/FastAPI)
 - Diretório do Resultado da Remodelagem em Deploy [visualizar diretório](https://github.com/Menotso/risco-credito/tree/main/FastAPI/model_report)
 
-Reutilizei as funções existentes no arquivo da modelagem com pequenas alterações e principalmente, fiz os seguintes módulos:
+#### Arquitetura das dependências de cada módulo
+
+- arquivo principal -> **app.py**
+
+![dependencias](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_FASTAPI/dependencias.png)
+
+_Criado com a biblioteca `pydeps`._
+
+Reutilizei as funções existentes no arquivo da modelagem com pequenas alterações e fiz os seguintes módulos:
 
 - **app.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/app.py)
   - Arquivo com a FastAPI
