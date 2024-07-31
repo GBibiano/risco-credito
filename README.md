@@ -2,6 +2,8 @@
 
 ![tema](https://github.com/Menotso/risco-credito/blob/main/imagens/Tema.jpeg)
 
+_Imagem criada com [ideogram](https://ideogram.ai/)_
+
 ## Objetivos
 
 Entregar um site do gênero bancário, fictício, que permite o acesso e cadastro de clientes, visualização do empréstimo que possuem direito e saldo. Adicionalmente, existirá perfis de acesso onde a gestão poderá visualizar diretamente no site o impacto no negócio da implementação de um modelo de machine learning que prevê o risco de crédito dos clientes.
