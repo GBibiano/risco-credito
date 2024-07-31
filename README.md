@@ -389,10 +389,10 @@ A remodelagem em deploy ocorre sempre que a previsão de 5 novos clientes é fei
 
 #### Arquivos da Remodelagem e Predição em Deploy
 
-Reutilizei as funções existentes no arquivo da modelagem com pequenas alterações e principalmente, fiz os seguintes módulos:
-
 - Diretório da FastAPI [visualizar diretório](https://github.com/Menotso/risco-credito/tree/main/FastAPI)
 - Diretório do Resultado da Remodelagem em Deploy [visualizar diretório](https://github.com/Menotso/risco-credito/tree/main/FastAPI/model_report)
+
+Reutilizei as funções existentes no arquivo da modelagem com pequenas alterações e principalmente, fiz os seguintes módulos:
 
 - **app.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/app.py)
   - arquivo com a FastAPI
