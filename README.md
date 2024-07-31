@@ -265,7 +265,9 @@ Para evitar overfitting e capturar ruídos dos dados, preferi verificar a import
     - Média da Revocação (Weighted): 93.44%
     - Média do F1 Score (Weighted): 93.04%
     - Precisão x Revocação, Área abaixo da Curva: 89.40%
+      
     ![rf_padrao](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/rf_padrao.png)
+  
     - Top 5 Feature Importance:
       - Inserir tabela com features com maior importância do modelo de ML
         - ratio_renda_emp;
@@ -280,7 +282,9 @@ Para evitar overfitting e capturar ruídos dos dados, preferi verificar a import
     - Média do F1 Score (Weighted): 91.71%
     - Precisão x Revocação, Área abaixo da Curva: 86.61%
     - Matriz de Confusão:
+  
     ![gbc_padrao](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/gbc_padrao.png)
+  
     - Top 5 Feature Importance:
         - Inserir tabela com features com maior importância do modelo de ML
         - ratio_renda_emp
@@ -295,7 +299,9 @@ Para evitar overfitting e capturar ruídos dos dados, preferi verificar a import
     - Média do F1 Score (Weighted): 93.16%
     - Precisão x Revocação, Área abaixo da Curva: 90.81%
     - Matriz de confusão:
+      
     ![xgb_padrao](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/xgb_padrao.png)
+  
     - Top 5 Feature Importance:
         - Inserir tabela com features com maior importância do modelo de ML
         - ratio_renda_emp
@@ -357,20 +363,25 @@ Performance dos modelos após a tunagem de hiperparâmetros:
   - Média do F1 Score (Weighted): 92.95%
   - Precisão x Revocação, Área abaixo da Curva: 90.19%
   - Matriz de confusão:
+
   ![rf_hiperparametros](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/rf_hiperparametros.png)
+
 - **Gradient Boosting Classifier**:
   - Média da Precisão (Weighted): 93.77%
   - Média da Revocação (Weighted): 93.67%
   - Média do F1 Score (Weighted): 93.38%
   - Precisão x Revocação, Área abaixo da Curva: 92.78%
   - Matriz de confusão:
+  
   ![gbc_hiperparametros](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/gbc_hiperparametros.png)
+
 - **XGBoost Classifier**:
   - Média da Precisão (Weighted): 93.71%
   - Média da Revocação (Weighted): 93.70%
   - Média do F1 Score (Weighted): 93.46%
   - Precisão x Revocação, Área abaixo da Curva: 92.15%
   - Matriz de confusão:
+  
   ![xgb_hiperparametros](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/xgb_hiperparametros.png)
 
 O modelo **XGBoost Classifier** possui a maior revocação, os melhores hiperparâmetros foram:
