@@ -33,10 +33,8 @@ Entregar um site do gênero bancário, fictício, que permite o acesso e cadastr
 - Análise Exploratória de Dados
 - Modelo de Machine Learning
 - Tunagem de Hiperparâmetros
-- Deploy
+- Deploy (Predição e Remodelagem)
 - Aplicação Prática de Negócio
-- Resultado
-
 
 ## Entendimento do Contexto de Negócio
 
@@ -62,6 +60,11 @@ Entregar um site do gênero bancário, fictício, que permite o acesso e cadastr
 #### Descrição do problema
   Quando se trata de trabalhar com dados em um banco é esperado que a concessão de empréstimos seja rigorosamente avaliada com base em argumentos. Um dos problemas dessa empresa em específico era de prever quando uma concessão de empréstimo à um cliente resulta em inadimplência. A inadimplência ocorre quando uma pessoa física ou jurídica deixa de cumprir uma obrigação financeira dentro do prazo estipulado. Com a intenção de sanar este problema, pedimos uma base de dados dos clientes para elaborar uma solução utilizando algoritmos de aprendizagem de máquina.
 
+#### Arquivos da EDA
+
+- **credit_risk_dataset.csv** [visualizar](https://github.com/Menotso/risco-credito/blob/main/EDA/credit_risk_dataset.csv)
+- **EDA_Credit_Risk.ipynb** [visualizar](https://github.com/Menotso/risco-credito/blob/main/EDA/EDA_Credit_Risk.ipynb)
+
 #### Informações do dataset
 
 - **`idade_cliente`**: Idade do cliente
@@ -77,29 +80,36 @@ Entregar um site do gênero bancário, fictício, que permite o acesso e cadastr
 - **`historico_inadimplencia_cliente`**: se possui histórico de inadimplência
 - **`tempo_credito_cliente`**: histórico de crédito em anos
 
-Reduzimos o tamanho do dataset de 3.0 MB para 1.6 MB alterando o tipo das features
+Reduzimos o tamanho do dataset de 3.0 MB para **1.6 MB** alterando o tipo das features.
 
 #### Tratamento de dados nulos, duplicados, outliers
 
 O dataset possuía:
 
-- 895 clientes sem informação de anos trabalhados (`tempo_emprego_cliente`); e
-- 3.116 clientes sem informação de taxa de juros (`taxa_juros_emprestimo`).
-
-Decidi por retirar as 3.116 instâncias de taxa de juros para evitar incluir viés fictício nos dados que poderia gerar underfitting mais à frente e preenchi os nulos de anos trabalhados com o valor mais frequente (moda).
+- **Dados nulos:**
+  - 895 clientes sem informação de anos trabalhados (`tempo_emprego_cliente`), foram preenchidos os nulos de anos trabalhados com o valor mais frequente (moda)
+  - 3.116 clientes sem informação de taxa de juros (`taxa_juros_emprestimo`), foram retiradas as 3.116 instâncias de taxa de juros para evitar incluir viés fictício nos dados que poderia gerar underfitting mais à frente
+  - Haviam clientes com 0% em `percentual_renda_emprestimo` que foram retirados coincidentemente junto do tratamento de `taxa_juros_emprestimo`
+- **Dados duplicados:**
+  - Não haviam dados duplicados nesta base de dados.
+- **Outliers:**
+  - Um cliente com 144 anos e outro com 123 anos, foram tratados como 44 e 23 anos, respectivamente
+  - 50 clientes com renda anual acima de 500 mil, foram retirados da base de dados diminuindo o desvio-padrão da renda em quase 20.000
+  - Dois clientes com 123 anos trabalhados, foram tratados como 23 anos.
 
 #### Verificando padrões nos dados
 
-Executei a Análise univariada e bivariada em:
-  - Variáveis Numéricas:
-    - Gráficos de Pontos
-    - Gráficos de Barras
-  - Variáveis Categóricas:
+Executei a análise univariada e bivariada em:
+
+  - **Variáveis Numéricas:**
     - KDE Plots
     - Gráficos de Contagem
     - Box Plots
     - Gráficos de Violino
     - Histogramas
+  - **Variáveis Categóricas:**
+    - Gráficos de Pontos
+    - Gráficos de Barras
       
 #### Resultados Principais da EDA
   
@@ -172,13 +182,17 @@ Ao final exportei o arquivo pickle da base de dados para utilizar na modelagem.
 
 ## Modelo de Machine Learning
 
+#### Arquivo da modelagem
+
+- **modelagem.ipynb** [visualizar](https://github.com/Menotso/risco-credito/blob/main/Modelagem_ML/modelagem.ipynb)
+
 ### Modelagem
 
 Optei por utilizar três modelos que lidam relativamente bem com dados desbalanceados:
 
-- Random Forest Classifier;
-- XGBoost Classifier;
-- Gradient Boosting Classifier;
+- **Random Forest Classifier**;
+- **XGBoost Classifier**;
+- **Gradient Boosting Classifier**;
 
 Utilizei principalmente duas funções:
 
@@ -210,23 +224,23 @@ Criei as features com:
 
 Criando 11 features adicionais e totalizando 23, sendo elas:
 
-1. retorno_emprestimo = multiplicando (taxa_juros_emprestimo por valor_emprestimo) + valor_empréstimo;
-2. ratio_renda_emp = dividindo renda por emprestimo;
-3. ratio_emprego_credito = tempo_emprego_cliente dividido por tempo_credito_cliente, caso dividir por zero, resulta em zero;
-4. media_valemp_nota = média de valor_emprestimo para cada nota_emprestimo;
-5. media_valoremp_finalidade = média de valor_emprestimo para cada finalidade_emprestimo;
-6. std_valemp_residencia = desvio-padrão do valor_emprestimo por posse_residencia_cliente;
-7. media_renda_nota = média de renda_cliente para cada nota_emprestimo;
-8. media_renda_finalidade = média de renda_cliente para cada finalidade_emprestimo;
-9. std_renda_residencia = desvio-padrão do renda_cliente por posse_residencia_cliente;
-10. ratio_emprego_renda = tempo_emprego_cliente dividido por renda_cliente
-11. ratio_credito_renda = tempo_credito_cliente dividido por renda_cliente
+1. **`retorno_emprestimo`** = multiplicando (`taxa_juros_emprestimo` por `valor_emprestimo`) + `valor_empréstimo`;
+2. **`ratio_renda_emp`** = dividindo `renda_cliente` por `valor_emprestimo`;
+3. **`ratio_emprego_credito`** = `tempo_emprego_cliente` dividido por `tempo_credito_cliente`, caso dividir por zero, resulta em zero;
+4. **`media_valemp_nota`** = média de `valor_emprestimo` para cada `nota_emprestimo`;
+5. **`media_valoremp_finalidade`** = média de `valor_emprestimo` para cada `finalidade_emprestimo`;
+6. **`std_valemp_residencia`** = desvio-padrão do `valor_emprestimo` por `posse_residencia_cliente`;
+7. **`media_renda_nota`** = média de `renda_cliente` para cada `nota_emprestimo`;
+8. **`media_renda_finalidade`** = média de `renda_cliente` para cada `finalidade_emprestimo`;
+9. **`std_renda_residencia`** = desvio-padrão do `renda_cliente` por `posse_residencia_cliente`;
+10. **`ratio_emprego_renda`** = `tempo_emprego_cliente` dividido por `renda_cliente`; e
+11. **`ratio_credito_renda`** = `tempo_credito_cliente` dividido por `renda_cliente`.
 
 #### Avaliando a performance de modelos e respectivas features importances
 
 Para evitar overfitting e capturar ruídos dos dados, preferi verificar a importância das features em cada modelo e tratar as piores posteriormente com RFE. Os modelos foram treinados com 10 folds no StratifiedKFold (SKF) em razão do desbalanceamento de classes, situação em que o SKF lida bem na distribuição de folds em treino e teste estratificando-os.
 
-- Random Forest Classifier:
+- **Random Forest Classifier:**
     - Preferi utilizar a proporção inversa das classes como pesos ao invés de utilizar balanceamento de classes do gênero undersampling ou oversampling (RUS, ADASYN, SMOTE)
     - Média da Precisão (Weighted): 93.77%
     - Média da Revocação (Weighted): 93.44%
@@ -240,7 +254,7 @@ Para evitar overfitting e capturar ruídos dos dados, preferi verificar a import
         - taxa_juros_emprestimo;
         - media_valemp_nota;
     - Nenhuma feature sem importância para o modelo, sendo a menor **`historico_inadimplencia_cliente`** com 0.006285.
-- XGBoost Classifier:
+- **XGBoost Classifier:**
     - Média da Precisão (Weighted): 93.80%
     - Média da Revocação (Weighted): 93.53%
     - Média do F1 Score (Weighted): 93.16%
@@ -253,7 +267,7 @@ Para evitar overfitting e capturar ruídos dos dados, preferi verificar a import
         - tempo_emprego_cliente
         - finalidade_emprestimo
     - 1 feature sem importância para o modelo, sendo ela **`std_renda_residencia`**.
-- Gradient Boosting Classifier:
+- **Gradient Boosting Classifier:**
     - Média da Precisão (Weighted): 92.46%
     - Média da Revocação (Weighted): 92.21%
     - Média do F1 Score (Weighted): 91.71%
@@ -275,15 +289,17 @@ O modelo com a pior performance foi o Gradient Boosting Classifier.
 
 Utilizei o RFE (Recursive Feature Elimination). Testei a quantidade de features cuja métrica utilizada foi a área abaixo da curva entre precisão e revocação (pr_auc).
 
-- Random Forest Classifier:
+- **Random Forest Classifier:**
   - Melhor "X_train" com 20 features; e
-  - Precision Recall AUC:  0.8799720356171663
-- XGBoost Classifier:
+  - Precision-Recall AUC:  0.8799720356171663
+- **XGBoost Classifier:**
   - Melhor "X_train" com 14 features; e
-  - Precision Recall AUC:  0.8938019204177713
-- Gradient Boosting Classifier:
+  - Precision-Recall AUC:  0.8938019204177713
+- **Gradient Boosting Classifier:**
   - Melhor "X_train" com 13 features; e
-  - Precision Recall AUC:  0.8586441590501775
+  - Precision-Recall AUC:  0.8586441590501775
+
+O modelo com a maior métrica de Precision-Recall AUC é o **XGBoost Classifier**.
  
 Após o RFE, 7 das 14 features que foram selecionadas para o **XGBoost Classifier** são do DataFrame original.
 
@@ -349,7 +365,8 @@ gamma = trial.suggest_float('gamma', 0.001, 1.0)
 
 Escolhi o **XGBoost Classifier** pelas razões abaixo:
 
-- Possui uma revocação mais alta e identificou melhor os inadimplentes. 
+- Possui uma revocação mais alta e identificou melhor os inadimplentes;
+- Atinge o maior valor da métrica Precision-Recall Area Under the Curve; 
 - Tempo de treinamento do modelo e respectiva tunagem de hiperparâmetros são rápidos, resultando em pouco tempo de atraso na atualização do mesmo;
 - Em produção não utiliza tanto processamento e memória; e
 - O arquivo pickle do XGBoost Classifier é o mais leve.
@@ -359,10 +376,10 @@ Escolhi o **XGBoost Classifier** pelas razões abaixo:
 Resumidamente, um usuário pode fazer uma requisição GET via URL e a resposta retornada é a previsão se o cliente irá pagar ou não o empréstimo.
 
 Utilizamos a biblioteca padrão `Random` para facilitar o processo:
-  - De predição em deploy fiz a inserção de dados fictícios para preencher informações que o banco deveria fornecer, como por exemplo, taxa de juros do empréstimo.
-  - Da remodelagem em deploy também foi necessário que utilizássemos dados fictícios na inserção da variável target, tarefa associada ao treino e teste.
+  - De predição em deploy fazendo a inserção de dados fictícios para preencher informações que o banco deveria fornecer, como por exemplo, taxa de juros do empréstimo.
+  - Da remodelagem em deploy utilizando dados fictícios na inserção da variável target, tarefa associada ao treino e teste.
 
-A remodelagem em deploy ocorre sempre que a previsão de 5 novos clientes é feita e substitui o classificador que está sendo utilizado. Apenas um número fictício.
+A remodelagem em deploy ocorre sempre que a previsão de 5 novos clientes é feita e substitui o classificador que está sendo utilizado. 5 clientes foi apenas um número fictício para poder testar a funcionalidade de remodelagem, na prática este número aumentaria.
 
 - Podemos inicializar o arquivo com o comando `uvicorn app:app --reload` no terminal.
 - No destino web `http://127.0.0.1:8000/docs` podemos fazer uma requisição POST para testar a função predict; ou
@@ -370,7 +387,12 @@ A remodelagem em deploy ocorre sempre que a previsão de 5 novos clientes é fei
   - `http://127.0.0.1:8000/predict?val_idade_cliente=34&val_renda_cliente=56000&val_posse_residencia_cliente=Alugada&val_tempo_emprego_cliente=20&val_finalidade_emprestimo=Pessoal&val_valor_emprestimo=28000`
   - O restante das features exigidas pelo Recursive Feature Elimination na modelagem feita em [modelagem.ipynb](https://github.com/Menotso/risco-credito/blob/main/Modelagem_ML/modelagem.ipynb) é processado pelos módulos na pasta da FastAPI com dados fictícios
 
-Reutilizei as funções existentes no arquivo modelagem com pequenas alterações e principalmente, fiz os seguintes módulos:
+#### Arquivos da Remodelagem e Predição em Deploy
+
+Reutilizei as funções existentes no arquivo da modelagem com pequenas alterações e principalmente, fiz os seguintes módulos:
+
+- Diretório da FastAPI [visualizar diretório](https://github.com/Menotso/risco-credito/tree/main/FastAPI)
+- Diretório do Resultado da Remodelagem em Deploy [visualizar diretório](https://github.com/Menotso/risco-credito/tree/main/FastAPI/model_report)
 
 - **app.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/app.py)
   - arquivo com a FastAPI
@@ -396,7 +418,7 @@ Reutilizei as funções existentes no arquivo modelagem com pequenas alteraçõe
   - Verifica se há necessidade de tunagem de hiperparâmetros, caso não, chama os melhores da primeira modelagem
   - Utiliza as features resultantes do Recursive Feature Elimination da primeira modelagem
   - Chama **train_model.py** para treinar o modelo
-  - Utiliza o **dump_model.py** ([visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/dump_model.py)) para serializar o arquivo da remodelagem em formato `pickle`
+  - Utiliza o **dump_model.py** ([visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/dump_model.py)) para serializar o arquivo da remodelagem em formato `pickle` [visualizar diretório](https://github.com/Menotso/risco-credito/tree/main/FastAPI/model_report)
   - Retorna o modelo resultante da remodelagem
 - **train_model**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/train_model.py)
   - Treina o modelo
@@ -404,8 +426,9 @@ Reutilizei as funções existentes no arquivo modelagem com pequenas alteraçõe
   - Normaliza com `StandardScaler`
   - Faz o split em folds de treino/teste com `StratifiedKFold`
   - Executa validação cruzada com `cross_validate`
-  - Salva a feature importance e métricas em formato `.json`
-  - Salva a matriz de confusão em imagem `.png`
+  - Salva as métricas em formato `.json` [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/model_report/metrics.json)
+  - Salva a feature importance e métricas em formato `.json` [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/model_report/feature_importance.json)
+  - Salva a matriz de confusão em imagem `.png` [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/model_report/confusion_matrix.png)
 
 ## Aplicação Prática de Negócio
 
@@ -422,7 +445,7 @@ O Recall nos diz que de todos os clientes que de fato não pagaram, o modelo con
 - Como não sabemos em quanto tempo um cliente pagará o empréstimo ou quanto está pagando por período, temos a proposta abaixo:
 
 --------------------------------------------------------------------------------
-Não conceder o valor de empréstimo solicitado pelos clientes inadimplentes.
+**Não conceder o valor de empréstimo solicitado pelos clientes inadimplentes.**
 
 --------------------------------------------------------------------------------
 
