@@ -378,11 +378,9 @@ gamma = trial.suggest_float('gamma', 0.001, 1.0)
 
 ### Modelo escolhido
 
-Escolhi o **XGBoost Classifier** pelas razões abaixo:
-
 Em um cenário real, utilizaríamos o Gradient Boosting Classifier pelos resultados serem melhores, mas para fins didáticos e de praticidade do deploy, utilizarei o XGBoost Classifier.
 
-Escolhemos o XGBoost Classifier pelas razões abaixo:
+Escolhi o **XGBoost Classifier** pelas razões abaixo:
 - Possui a revocação um pouco abaixo do Gradient Boosting e identificou relativamente bem os inadimplentes. 
 - Tempo de treinamento do modelo e respectiva tunagem de hiperparâmetros são rápidos, resultando em pouco tempo de atraso na resposta em deploy;
 - Em produção não utiliza tanto processamento e memória; e
