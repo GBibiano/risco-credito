@@ -470,6 +470,8 @@ Após o ajuste do threshold para `0.35`, podemos visualizar a performance do mod
 - **Média do F1 Score (Weighted):** 92.70%
 - **Precisão x Revocação, Área abaixo da Curva:** 90.68%
 
+![xgb_hiperparametros_threshold](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/xgb_hiperparametros_threshold.png)
+
 O Recall nos diz que de todos os clientes que de fato não pagaram, o modelo conseguiu acertar 92.85% dos casos. Contudo, o modelo acertou apenas 92.70% dos casos em que ele previu que os clientes não pagariam.
 
 **Inserindo em um contexto para visualizar a aplicabilidade deste modelo no negócio**
