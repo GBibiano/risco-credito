@@ -186,8 +186,9 @@ Optei por utilizar três modelos que lidam relativamente bem com dados desbalanc
 - **Gradient Boosting Classifier**; e
 - **XGBoost Classifier**.
 
-Utilizei principalmente duas funções:
-
+Utilizei principalmente três funções:
+- **`feature_engineering`:**
+  - Executa o feature engineering no DataFrame fornecido e retorna após as alterações.
 - **`treinar_modelo()`:**
   - Treina o modelo, exibe precisão/recall/f1-score, matriz de confusão e feature_importance;
   - Utilizando:
@@ -210,7 +211,7 @@ Há uma correlação positiva moderada entre as variáveis:
 
 #### Feature Engineering
 
-Criei as features com:
+Criei as features em cada fold para evitar data leakage com:
 - Médias e desvios-padrão de features; e
 - Ratios: divisão de uma feature por outra.
 
@@ -293,14 +294,14 @@ O modelo com a pior performance foi o Gradient Boosting Classifier.
 Utilizei o RFE (Recursive Feature Elimination). Testei a quantidade de features cuja métrica utilizada foi a área abaixo da curva entre precisão e revocação (pr_auc).
 
 - **Random Forest Classifier:**
-  - Melhor "X_train" com 20 features; e
-  - Precision-Recall AUC:  0.8799720356171663
-- **Gradient Boosting Classifier:**
   - Melhor "X_train" com 13 features; e
-  - Precision-Recall AUC:  0.8586441590501775
+  - Precision-Recall AUC:  0.8644429061026928
+- **Gradient Boosting Classifier:**
+  - Melhor "X_train" com 16 features; e
+  - Precision-Recall AUC:  0.8376407331700388
 - **XGBoost Classifier:**
-  - Melhor "X_train" com 14 features; e
-  - Precision-Recall AUC:  0.8938019204177713
+  - Melhor "X_train" com 15 features; e
+  - Precision-Recall AUC:  0.8956662881834732
 
 O modelo com a maior métrica de Precision-Recall AUC é o **XGBoost Classifier**.
  
@@ -331,33 +332,33 @@ Optei por utilizar a pesquisa Bayesiana da biblioteca **Optuna**. Utilizei as fe
 Performance dos modelos após a tunagem de hiperparâmetros:
 
 - **Random Forest Classifier**:
-  - Média da Precisão (Weighted): 93.38%
-  - Média da Revocação (Weighted): 93.28%
-  - Média do F1 Score (Weighted): 92.95%
-  - Precisão x Revocação, Área abaixo da Curva: 90.19%
+  - Média da Precisão (Weighted): 93.02%
+  - Média da Revocação (Weighted): 92.98%
+  - Média do F1 Score (Weighted): 92.66%
+  - Precisão x Revocação, Área abaixo da Curva: 89.49%
   - Matriz de confusão:
 
   ![rf_hiperparametros](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/rf_hiperparametros.png)
 
 - **Gradient Boosting Classifier**:
-  - Média da Precisão (Weighted): 93.77%
-  - Média da Revocação (Weighted): 93.67%
-  - Média do F1 Score (Weighted): 93.38%
-  - Precisão x Revocação, Área abaixo da Curva: 92.78%
+  - Média da Precisão (Weighted): 93.81%
+  - Média da Revocação (Weighted): 93.69%
+  - Média do F1 Score (Weighted): 93.39%
+  - Precisão x Revocação, Área abaixo da Curva: 90.41%
   - Matriz de confusão:
   
   ![gbc_hiperparametros](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/gbc_hiperparametros.png)
 
 - **XGBoost Classifier**:
-  - Média da Precisão (Weighted): 93.71%
-  - Média da Revocação (Weighted): 93.70%
-  - Média do F1 Score (Weighted): 93.46%
-  - Precisão x Revocação, Área abaixo da Curva: 92.15%
+  - Média da Precisão (Weighted): 93.40%
+  - Média da Revocação (Weighted): 93.38%
+  - Média do F1 Score (Weighted): 93.11%
+  - Precisão x Revocação, Área abaixo da Curva: 89.79%
   - Matriz de confusão:
   
   ![xgb_hiperparametros](https://github.com/Menotso/risco-credito/blob/main/imagens/imagens_MODEL/xgb_hiperparametros.png)
 
-O modelo **XGBoost Classifier** possui a maior revocação, os melhores hiperparâmetros foram:
+O modelo **XGBoost Classifier** possui a segunda maior revocação, os melhores hiperparâmetros foram:
 
 | Parâmetro   | Valor      |
 | :---------- | :--------- |
@@ -366,7 +367,7 @@ O modelo **XGBoost Classifier** possui a maior revocação, os melhores hiperpar
 | `learning_rate`      | 0.4112354775681158 |
 | `gamma`      | 0.09972654226276964 |
 
-O respectivo espaço de busca do XGBoost que durou menos de 5 minutos:
+O respectivo espaço de busca do XGBoost que durou menos de 5 minutos (30 trials):
 
 ```bash
 n_estimators = trial.suggest_int('n_estimators', 50, 300)
@@ -379,9 +380,11 @@ gamma = trial.suggest_float('gamma', 0.001, 1.0)
 
 Escolhi o **XGBoost Classifier** pelas razões abaixo:
 
-- Possui uma revocação mais alta e identificou melhor os inadimplentes;
-- Atinge o maior valor da métrica Precision-Recall Area Under the Curve; 
-- Tempo de treinamento do modelo e respectiva tunagem de hiperparâmetros são rápidos, resultando em pouco tempo de atraso na atualização do mesmo;
+Em um cenário real, utilizaríamos o Gradient Boosting Classifier pelos resultados serem melhores, mas para fins didáticos e de praticidade do deploy, utilizarei o XGBoost Classifier.
+
+Escolhemos o XGBoost Classifier pelas razões abaixo:
+- Possui a revocação um pouco abaixo do Gradient Boosting e identificou relativamente bem os inadimplentes. 
+- Tempo de treinamento do modelo e respectiva tunagem de hiperparâmetros são rápidos, resultando em pouco tempo de atraso na resposta em deploy;
 - Em produção não utiliza tanto processamento e memória; e
 - O arquivo pickle do XGBoost Classifier é o mais leve.
 
@@ -445,7 +448,10 @@ Reutilizei as funções existentes no arquivo da modelagem com pequenas alteraç
   - Chama **train_model.py** para treinar o modelo
   - Utiliza o **dump_model.py** ([visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/dump_model.py)) para serializar o arquivo da remodelagem em formato `pickle` [visualizar diretório](https://github.com/Menotso/risco-credito/tree/main/FastAPI/model_report)
   - Retorna o modelo resultante da remodelagem
-- **train_model**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/train_model.py)
+- **feature_engineering.py**: [visualizar]()
+  - Recebe e retorna um DataFrame com o feature_engineering executado
+  - Recebe também uma lista como parâmetro além do DataFrame, filtrando as colunas que serão retornadas pela função
+- **train_model.py**: [visualizar](https://github.com/Menotso/risco-credito/blob/main/FastAPI/train_model.py)
   - Treina o modelo
   - Faz encoding de features categóricas com `Target Encoder`
   - Normaliza com `StandardScaler`
@@ -459,14 +465,14 @@ Reutilizei as funções existentes no arquivo da modelagem com pequenas alteraç
 
 Se encontra no final do arquivo **modelagem.ipynb** [visualizar código](https://github.com/Menotso/risco-credito/blob/main/Modelagem_ML/modelagem.ipynb)
 
-A performance do modelo escolhido:
+Após o ajuste do threshold para `0.35`, podemos visualizar a performance do modelo escolhido:
 
-- **Média da Precisão (Weighted):** 93.71%
-- **Média da Revocação (Weighted):** 93.70%
-- **Média do F1 Score (Weighted):** 93.46%
-- **Precisão x Revocação, Área abaixo da Curva:** 92.15%
+- **Média da Precisão (Weighted):** 92.70%
+- **Média da Revocação (Weighted):** 92.85%
+- **Média do F1 Score (Weighted):** 92.70%
+- **Precisão x Revocação, Área abaixo da Curva:** 90.68%
 
-O Recall nos diz que de todos os clientes que de fato não pagaram, o modelo conseguiu acertar **93.70%** dos casos. Contudo, o modelo acertou apenas **93.71%** dos casos em que ele previu que os clientes não pagariam.
+O Recall nos diz que de todos os clientes que de fato não pagaram, o modelo conseguiu acertar 92.85% dos casos. Contudo, o modelo acertou apenas 92.70% dos casos em que ele previu que os clientes não pagariam.
 
 **Inserindo em um contexto para visualizar a aplicabilidade deste modelo no negócio**
 
@@ -479,12 +485,11 @@ O Recall nos diz que de todos os clientes que de fato não pagaram, o modelo con
 
 ## Resultado
 
-- Evitaríamos perder: **R$ 5.075.275,00** (5 milhões).
-- **Lucro Bruto** de: **R$ 2.594.183,73** (2.6 milhões)
-- Perderíamos: **R$ 1.134.276,95** (1.1 milhão)
-- Gerando um **Total Líquido** de: **R$ 1.251.413,78** (1.3 milhão)
-- No início concedemos **R$ 21.649.350,00** (21.6 milhões) e terminamos com o saldo final de **R$ 22.930.088,78** (23 milhões).
-
+- Evitaríamos perder: R$ 5.022.375,00 (5 milhões).
+- **Lucro Bruto** de: R$ 2.545.164,06 (2.5 milhões)
+- Perderíamos: R$ 1.412.400,00 (1.4 milhão)
+- Gerando um **Total Líquido** de: R$ 1.046.735,93 (1 milhão)
+- No início concedemos: R$ 21.284.800.00 (21.3 milhões) e terminamos com o saldo final de **R$ 22.331.535.93** (22.3 milhões)
 Isso tudo com um baixo custo computacional e também com praticidade na manutenção do modelo para posterior melhorias.
 
-O cenário ideal seria reduzir os falsos negativos à zero, entretanto, reduzir o threshold faz com que os falsos positivos aumentem substancialmente enquanto os falsos negativos diminuem em pequena quantia. Aumentar a revocação e diminuir a precisão pode ter custos maiores futuramente a depender da decisão de conceder empréstimos maiores e pode não ser mais viável um ajuste visando aumentar a revocação.
+O cenário ideal seria reduzir os falsos negativos à zero. Assim o número de falsos positivos aumentarão substancialmente ao diminuir o threshold, gerando perdas significativas de dinheiro, entretanto, vimos anteriormente que o prejuízo que a classificação errada de um cliente que de fato será inadimplente é quatro vezes maior que de um cliente que pagaria sendo classificado como inadimplente. Com o nosso ajuste do threshold, o modelo agora abrange um pouco mais este prejuízo dos Falsos Negativos.
