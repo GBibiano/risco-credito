@@ -1,4 +1,4 @@
-# Previsão de Risco de Crédito em FastAPI
+# Previsão de Risco de Crédito com Deploy em FastAPI
 
 ![tema](https://github.com/Menotso/risco-credito/blob/main/imagens/Tema.jpeg)
 
